@@ -1,0 +1,6 @@
+[submodule "external/Elemental"]
+	path = external/Elemental
+	url = https://github.com/muralidhar-nalabothula/Elemental
+[submodule "external/nd_array"]
+	path = external/nd_array
+	url = git@github.com:muralidhar-nalabothula/nd_array.git
