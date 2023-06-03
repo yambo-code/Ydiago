@@ -30,6 +30,7 @@
     #define MPI_FLOAT_TYPE              MPI_DOUBLE
     #define MPI_COMPLEX_FLOAT_TYPE      MPI_C_DOUBLE_COMPLEX
 #else
+    #define COMPILE_ND_SINGLE_COMPLEX
     typedef float BS_float;
     typedef float complex BS_cmplx;
     #define Nd_floatS s

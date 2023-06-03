@@ -75,6 +75,7 @@ void Function(heev,Nd_cmplxS) (char uplo, EL_type(ElDistMatrix,Nd_cmplxS) A, EL_
     if ( n_eig_idx_range != NULL || eig_val_range != NULL ) partial_eig = true;
 
     EL_type(ElHermitianEigSubset,Nd_floatS) Eigsubset;
+    EL_type(ElHermitianEigSubsetDefault,Nd_floatS)(&Eigsubset);
 
     if (n_eig_idx_range != NULL)
     {
@@ -172,6 +173,7 @@ void Function(Pencilheev,Nd_cmplxS) (ElPencil pencil, char uplo, EL_type(ElDistM
     if ( n_eig_idx_range != NULL || eig_val_range != NULL ) partial_eig = true;
 
     EL_type(ElHermitianEigSubset,Nd_floatS) Eigsubset;
+    EL_type(ElHermitianEigSubsetDefault,Nd_floatS)(&Eigsubset);
 
     if (n_eig_idx_range != NULL)
     {

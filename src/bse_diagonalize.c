@@ -481,7 +481,7 @@ int main( int argc, char* argv[] )
     EL_Function(ElTransposeDist,Nd_cmplxS) (Z_right,kernel);
 
     Function(nc_writeMat,Nd_cmplxS) ("out.nc",'w',"BS_EIGENSTATES", (char *[]){"n_evec","kcv","evec_re_im"},false,kernel, grid);
-    Function(nc_writeMat,Nd_cmplxS) ("out.nc",'a',"BS_Energies", (char *[]){"neig","1","eval_re_im"},false,W, grid);
+    Function(nc_writeMat,Nd_cmplxS) ("out.nc",'a',"BS_Energies", (char *[]){"neig","None","eval_re_im"},false,W, grid);
 
 
     /* Anti-resonant and  no coupling*/
@@ -539,10 +539,12 @@ int main( int argc, char* argv[] )
 
     free(BS_HEADER);
 
+    if (rank == 0) { printf(" Done :) \n"); fflush(stdout);}
+
     error = ElFinalize();
 
     if( error != EL_SUCCESS ) MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );
-    
+
     return 0;
 
 }

@@ -85,7 +85,7 @@ cmake_str += '-DMATH_LIBS=' + ('"%s"' %(math_libs.strip()))
 
 # print(cmake_str)
 if (not elemental_already_build):
-    os.system("cmake .. -DCMAKE_BUILD_TYPE=Debug -DEL_TESTS=ON -DEL_EXAMPLES=ON  -DEL_DISABLE_QUAD=ON "+cmake_str)
+    os.system("cmake .. -DCMAKE_BUILD_TYPE=Debug -DEL_TESTS=OFF -DEL_EXAMPLES=OFF  -DEL_DISABLE_QUAD=ON "+cmake_str)
     os.system("make -j%d all" %(MAKECPUS))
     os.system("make install")
     os.chdir(current_path)
@@ -143,10 +143,18 @@ for ifiles in files:
     print(compile)
     os.system(compile)
 
+## some times libraries are written to lib64
 
-compile = MPICC + ' ' + MPIC_FLAGS + ' *.o ' + SCALAPACK_LIBS + ' ' + LAPACK_LIBS +  ' ' + BLAS_LIBS + ' ' + NETCDF_LIBS+ ' ' + '-Wl,-rpath,'+\
-            current_path+'/external/Elemental/build/lib -Wl,-rpath,' + current_path+'/external/nd_array/src' \
-        + '  -L'+current_path+'/external/Elemental/build/lib -lel -L'+ current_path + '/external/nd_array/src -lnd_array -lgmpxx -lgmp -lc++' + ELEMENTAL_LIBS + ' -o ydiago ' 
+is64lib = os.path.exists(current_path+'/external/Elemental/build/lib64')
+
+if is64lib:
+    os.chdir(current_path+'/external/Elemental/build/lib')
+    os.system("ln -s ../lib64/* .")
+
+os.chdir(current_path+'/src')
+compile = MPICXX + ' ' + MPIC_FLAGS + ' *.o ' + SCALAPACK_LIBS + ' ' + LAPACK_LIBS +  ' ' + BLAS_LIBS + ' ' + NETCDF_LIBS+ ' ' + '-Wl,-rpath '+\
+            current_path+'/external/Elemental/build/lib -Wl,-rpath ' + current_path+'/external/nd_array/src' \
+        + '  -L'+current_path+'/external/Elemental/build/lib -lEl -lpmrrr -lElSuiteSparse -lparmetis -lmetis -L'+ current_path + '/external/nd_array/src -lnd_array -lm '  + ' -o ydiago ' 
 ## Compile Ydiago
 print(compile)
 os.system(compile)
