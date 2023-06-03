@@ -599,3 +599,5 @@ void MPI_Bcast_report_variables(int root, MPI_Comm comm, int * calc_type, bool *
     if (MPI_Barrier(comm) != MPI_SUCCESS ) {printf("Error : MPI_Barrier failed !. \n"); MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );}
 
 }
+
+

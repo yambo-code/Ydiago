@@ -108,3 +108,7 @@ void MPI_Bcast_input_variables(int root, MPI_Comm comm, int * nq, ND_int * eig_n
 
 void MPI_Bcast_report_variables(int root, MPI_Comm comm, int * calc_type, bool * has_inv,\
                             bool * is_metal, int * metal_bands, ND_array(Nd_floatS) * energies_ibz);
+
+
+    
+

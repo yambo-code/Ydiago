@@ -468,7 +468,7 @@ void Function(Symmetrize,Nd_cmplxS) (EL_type(ElDistMatrix,Nd_cmplxS) block, char
 
 
 
-
+    
 
 
 
