@@ -107,7 +107,7 @@ void Function(BZ_expand, Nd_cmplxS) (ND_array(Nd_floatS) * ibz_kpts, ND_array(Nd
                 }
             }
 
-            if(FUNCTION(Unique_element_finder, Nd_cmplxS)(kpoints->data, k_temp, kcounter))
+            if(Function(Unique_element_finder, Nd_cmplxS)(kpoints->data, k_temp, kcounter))
             {
                 memcpy(kpoints->data + kcounter*3, k_temp, 3*sizeof(BS_float));
 
@@ -188,7 +188,7 @@ void Function(get_KplusQ_idxs , Nd_cmplxS) (ND_array(Nd_floatS) * kpoints, nd_ar
                     k_buffer[1] = KplusQ[1]-nj;
                     k_buffer[2] = KplusQ[2]-nk;
 
-                    if (FUNCTION(isVECpresent, Nd_cmplxS) ( kpoints, k_buffer, &idx_temp))
+                    if (Function(isVECpresent, Nd_cmplxS) ( kpoints, k_buffer, &idx_temp))
                     {
                         KplusQ_found = true;
                         KplusQidxs->data[i] = idx_temp;
@@ -288,7 +288,7 @@ static bool Function(Unique_element_finder, Nd_cmplxS)(BS_float * array_in , BS_
     for (ND_int i=0; i< size_array_in; ++i)
     { 
         // The relative tolarence is set to 10^-4
-        if (FUNCTION(check_zero, Nd_cmplxS)( array_in+3*i, check_element, tol_temp ))
+        if (Function(check_zero, Nd_cmplxS)( array_in+3*i, check_element, tol_temp ))
         {
             temp_bool = false;
             break;
@@ -354,7 +354,7 @@ static bool Function(isVECpresent, Nd_cmplxS) ( const ND_array(Nd_floatS) * arra
         buffer[1] = tempj[1] - vec[1];
         buffer[2] = tempj[2] - vec[2];
         
-        if (FUNCTION(norm_vec, Nd_cmplxS) (buffer) < 1E-4 )
+        if (Function(norm_vec, Nd_cmplxS) (buffer) < 1E-4 )
         {   
             *idx = i;
             vec_is_in = true;

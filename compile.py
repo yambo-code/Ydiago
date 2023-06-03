@@ -12,12 +12,12 @@ from makediago import *
 ###### COMPILE ELEMENTAL #####
 current_path = os.getcwd()
 
-elemental_already_build = os.path.exists(current_path+'/Elemental/build')
+elemental_already_build = os.path.exists(current_path+'/external/Elemental/build')
 
 if (not elemental_already_build):
-    os.chdir(current_path+'/Elemental')
+    os.chdir(current_path+'/external/Elemental')
     os.mkdir('build')
-    os.chdir(current_path+'/Elemental/build')
+    os.chdir(current_path+'/external/Elemental/build')
 
 def check_str_pattern(input_str,check_str):
     found = False
@@ -85,28 +85,70 @@ cmake_str += '-DMATH_LIBS=' + ('"%s"' %(math_libs.strip()))
 
 # print(cmake_str)
 if (not elemental_already_build):
-    os.system("cmake .. -DCMAKE_BUILD_TYPE=Debug -DEL_TESTS=ON -DEL_EXAMPLES=ON "+cmake_str)
+    os.system("cmake .. -DCMAKE_BUILD_TYPE=Debug -DEL_TESTS=ON -DEL_EXAMPLES=ON  -DEL_DISABLE_QUAD=ON "+cmake_str)
     os.system("make -j%d all" %(MAKECPUS))
     os.system("make install")
     os.chdir(current_path)
 
 ## Compile nd_array
 
-os.chdir(current_path+'/nd_array')
-#os.system("python3 compile.py")
+os.chdir(current_path+'/external/nd_array')
+os.system("python3 compile.py")
 os.chdir(current_path)
 
-
+# ./build/CMakeCache.txt
 ###### COMPILE the DIAGONALIZATION CODE #####
 
-files = ['El_diagonalize.c', 'Hbse.c', 'symmetries.c', 'deltaE.c', 'bse_diagonalize.c', 'bs_table.c', 'helper.c', 'netCDF4_io.c', 'fix_float.c','libcfg.c','read_input.c',]
+files = ['El_diagonalize.c', 'Hbse.c', 'symmetries.c', 'deltaE.c', 'bse_diagonalize.c', 'bs_table.c', 'helper.c', 'netCDF4_io.c','libcfg.c','read_input.c',]
 
 file_name_combined = ' '
 for i in files:
     file_name_combined += ' ' + i + ' '
 
-compile = MPICC + ' ' + MPIC_FLAGS + ' ' + ' -I'+current_path+'/Elemental/build/include -I'+current_path+'/nd_array ' + NETCDF_INCS + ' ' + file_name_combined + \
-    ' ' +'-L./Elemental/build/lib -lel -L./nd_array -l_nd_array '+ ' ' + ' ' + SCALAPACK_LIBS + ' ' + LAPACK_LIBS +  ' ' + BLAS_LIBS + ' ' + NETCDF_LIBS+ ' ' + '-Wl,-rpath,'+current_path+'/Elemental/build/lib -Wl,-rpath,' + current_path+'/nd_array' \
-        + ' ElfullControlEig.o -lstdc++ ' + ' -o yambo_bse.x '
+ELEMENTAL_INCS = ' '
+ELEMENTAL_LIBS = ' '
+with open(current_path+'/external/Elemental'+'/build/CMakeCache.txt',mode='r') as file:
+    for line in file:
+        line = line.rstrip()
+        if (line.startswith("MPC_INCLUDES")):
+            add_ele_path = line.split('=')[-1].strip()
+            if (len(add_ele_path)>1): ELEMENTAL_INCS = ELEMENTAL_INCS + ' -I/'+ add_ele_path
+        elif (line.startswith("MPC_LIBRARIES")):
+            add_ele_path = line.split('=')[-1].strip()
+            #if (len(add_ele_path)>1): ELEMENTAL_LIBS = ELEMENTAL_LIBS + ' '+ add_ele_path
+        elif (line.startswith("MPFR_INCLUDES")):
+            add_ele_path = line.split('=')[-1].strip()
+            if (len(add_ele_path)>1): ELEMENTAL_INCS = ELEMENTAL_INCS + ' -I/'+ add_ele_path
+        elif (line.startswith("MPFR_LIBRARIES")):
+            add_ele_path = line.split('=')[-1].strip()
+            #if (len(add_ele_path)>1): ELEMENTAL_LIBS = ELEMENTAL_LIBS + ' '+ add_ele_path
+        elif (line.startswith("GMP_INCLUDES")):
+            add_ele_path = line.split('=')[-1].strip()
+            if (len(add_ele_path)>1): ELEMENTAL_INCS = ELEMENTAL_INCS + ' -I/'+ add_ele_path
+        elif (line.startswith("GMP_LIBRARIES")):
+            add_ele_path = line.split('=')[-1].strip()
+            #print(add_ele_path)
+            if (len(add_ele_path)>1): ELEMENTAL_LIBS = ELEMENTAL_LIBS + ' '+ add_ele_path
 
+
+os.chdir(current_path+'/src')
+
+## Compile the c++ file ElfullControlEig.cpp
+os.system(MPICXX + " -c -std=c++11 " + MPICXX_FLAGS + " " +ELEMENTAL_INCS+' ' +' -I'+current_path+ \
+            '/external/Elemental/build/include -I'+current_path+'/external/nd_array/src ' + NETCDF_INCS + ' ElfullControlEig.cpp ')
+
+for ifiles in files:
+    compile = MPICC + ' ' + MPIC_FLAGS + ' -c ' + ' -I'+current_path+'/external/Elemental/build/include -I'+ \
+    current_path+'/external/nd_array/src ' + NETCDF_INCS + ' ' + ' ' + ifiles 
+    print(compile)
+    os.system(compile)
+
+
+compile = MPICC + ' ' + MPIC_FLAGS + ' *.o ' + SCALAPACK_LIBS + ' ' + LAPACK_LIBS +  ' ' + BLAS_LIBS + ' ' + NETCDF_LIBS+ ' ' + '-Wl,-rpath,'+\
+            current_path+'/external/Elemental/build/lib -Wl,-rpath,' + current_path+'/external/nd_array/src' \
+        + '  -L'+current_path+'/external/Elemental/build/lib -lel -L'+ current_path + '/external/nd_array/src -lnd_array -lgmpxx -lgmp -lc++' + ELEMENTAL_LIBS + ' -o ydiago ' 
+## Compile Ydiago
+print(compile)
 os.system(compile)
+os.system("rm *.o ")
+os.chdir(current_path)

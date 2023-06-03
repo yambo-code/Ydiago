@@ -57,10 +57,10 @@ void parse_inputs(  int argc, char* argv[], char * bse_report_file, int * nq, ND
     cfg_param_t * params = malloc(npar*sizeof(cfg_param_t));
     
     /** Define parameters **/
-    params[0] =     (cfg_param_t){   'F',       "inp",                     "INPUT_FILE",            CFG_DNd_cmplxSTR,  &input_file             };
-    params[1] =     (cfg_param_t){   'J',       "job",                     "JOB_NAME",              CFG_DNd_cmplxSTR,  &bse_job_name1          };
+    params[0] =     (cfg_param_t){   'F',       "inp",                     "INPUT_FILE",            CFG_DTYPE_STR,  &input_file             };
+    params[1] =     (cfg_param_t){   'J',       "job",                     "JOB_NAME",              CFG_DTYPE_STR,  &bse_job_name1          };
     //------------------------------------- Below read from input file --------------------------
-    params[2] =     (cfg_param_t){   'R',       "bse_report_file",         "bse_report_file",       CFG_DNd_cmplxSTR,  &bse_report_file1        };
+    params[2] =     (cfg_param_t){   'R',       "bse_report_file",         "bse_report_file",       CFG_DTYPE_STR,  &bse_report_file1        };
     params[3] =     (cfg_param_t){   'q',       "nq",                      "nq",                    CFG_DTYPE_INT,  &nq1                    };
     params[4] =     (cfg_param_t){   'n',       "neig",                    "neig",                  CFG_ARRAY_INT,  &eig_num_rang1          };
     params[5] =     (cfg_param_t){   'v',       "eig_val_range",           "eig_val_range",         CFG_ARRAY_DBL,  &eig_val_range1         };
