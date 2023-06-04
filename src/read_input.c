@@ -311,7 +311,7 @@ static bool string_start_with(char * str, char * compare_str, bool trim)
         while(isspace(*a)) ++a;
         while(isspace(*b)) ++b;
     }
-
+    if(b[0] != a[0]) return false ;
     return !strncmp(a, b, strlen(b));
 }
 
@@ -333,6 +333,7 @@ static bool string_end_with(char * str, char * compare_str, bool trim)
     }
 
     bool ret_value = !strncmp(a, b, strlen(b));
+    if(b[0] != a[0]) ret_value = false ;
     free(temp_str);
     return ret_value;
 }
@@ -504,7 +505,7 @@ bool get_GW_from_report_file(const char * report_file, ND_int nspin, int * calc_
 
             for (ND_int ib = ibnd; ib < ibnd + nEqp_per_line ; ++ib ) 
             {   
-                printf("%d %d %zu \n",ispin,ik,ib);
+                //printf("%d %d %zu \n",ispin,ik,ib);
                 *ND_function(ele, Nd_floatS) (energies_ibz, nd_idx{ispin,ik,ib}) = 0.0367493*temp_vals[ib-ibnd];
             }
             ibnd = ibnd + nEqp_per_line ;
