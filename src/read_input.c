@@ -505,7 +505,6 @@ bool get_GW_from_report_file(const char * report_file, ND_int nspin, int * calc_
 
             for (ND_int ib = ibnd; ib < ibnd + nEqp_per_line ; ++ib ) 
             {   
-                //printf("%d %d %zu \n",ispin,ik,ib);
                 *ND_function(ele, Nd_floatS) (energies_ibz, nd_idx{ispin,ik,ib}) = 0.0367493*temp_vals[ib-ibnd];
             }
             ibnd = ibnd + nEqp_per_line ;
