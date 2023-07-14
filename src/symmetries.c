@@ -176,28 +176,10 @@ void Function(get_KplusQ_idxs , Nd_cmplxS) (ND_array(Nd_floatS) * kpoints, nd_ar
         
         ND_int idx_temp ;
         /* Now check the index of K+Q point in the kpoints */
-        for (int ni=-3; ni<4; ++ni )
+        if (Function(isVECpresent, Nd_cmplxS) ( kpoints, KplusQ, &idx_temp))
         {
-            for (int nj=-3; nj<4; ++nj )
-            {
-                for (int nk=-3; nk<4; ++nk )
-                {   
-                    BS_float k_buffer[3], k_bufferCC[3]; 
-
-                    k_buffer[0] = KplusQ[0]-ni;
-                    k_buffer[1] = KplusQ[1]-nj;
-                    k_buffer[2] = KplusQ[2]-nk;
-
-                    if (Function(isVECpresent, Nd_cmplxS) ( kpoints, k_buffer, &idx_temp))
-                    {
-                        KplusQ_found = true;
-                        KplusQidxs->data[i] = idx_temp;
-
-                        goto KplusQisthere;
-                    }
-
-                }
-            }
+            KplusQ_found = true;
+            KplusQidxs->data[i] = idx_temp;
         }
 
         if (!KplusQ_found)
@@ -206,9 +188,6 @@ void Function(get_KplusQ_idxs , Nd_cmplxS) (ND_array(Nd_floatS) * kpoints, nd_ar
             printf(" The Following is the K+Q point ( %f , %f , %f)! \n", KplusQ[0], KplusQ[1],KplusQ[2]);
             MPI_Abort( MPI_COMM_WORLD, EXIT_FAILURE );
         }
-
-        KplusQisthere:
-                    ;
 
     }
 
@@ -353,6 +332,10 @@ static bool Function(isVECpresent, Nd_cmplxS) ( const ND_array(Nd_floatS) * arra
         buffer[0] = tempj[0] - vec[0];
         buffer[1] = tempj[1] - vec[1];
         buffer[2] = tempj[2] - vec[2];
+
+        buffer[0] -= rint(buffer[0]);
+        buffer[1] -= rint(buffer[1]);
+        buffer[2] -= rint(buffer[2]);
         
         if (Function(norm_vec, Nd_cmplxS) (buffer) < 1E-4 )
         {   
