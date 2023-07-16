@@ -89,11 +89,11 @@ int main( int argc, char* argv[] )
     Function(serial_read,Nd_floatS)(DB_FILE, "DIMENSIONS", DIMENSIONS, MPI_COMM_WORLD);
 
     
-    nspinor = (ND_int)DIMENSIONS[11];
-    nspin   = (ND_int)DIMENSIONS[12];
-    vmax    = (ND_int)DIMENSIONS[14];
+    nspinor = (ND_int)rint(DIMENSIONS[11]);
+    nspin   = (ND_int)rint(DIMENSIONS[12]);
+    vmax    = (ND_int)rint(DIMENSIONS[14]);
     
-    time_rev = (bool)((ND_int)DIMENSIONS[9]);
+    time_rev = (bool)((ND_int)rint(DIMENSIONS[9]));
 
     //inv_sym  = true ; // *** FIX ME ***
 
