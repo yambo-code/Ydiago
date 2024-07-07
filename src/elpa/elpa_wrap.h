@@ -6,10 +6,20 @@
 
 #ifdef WITH_ELPA
 
-Err_INT set_ELPA(const void* D_mat, const D_INT neigs, const D_INT elpa_solver,
-                 const char* gpu_type, const D_INT nthreads,
-                 MPI_Comm sub_comm, elpa_t* elpa_handle);
+struct ELPAinfo
+{
+    elpa_t elpa_handle;
+    MPI_Comm elpa_comm;
+    // the MPI communicator. Note we use elpa_comm instead of mat-comm, this
+    // is because elpa excepts that all cpus in comm must call the function.
+    bool cpu_engage; // True if this function will call the elpa function
+};
 
-Err_INT cleanup_ELPA(const elpa_t elpa_handle);
+Err_INT start_ELPA(struct ELPAinfo* info, MPI_Comm comm, const bool cpu_engage);
+
+Err_INT set_ELPA(const void* D_mat, const D_INT neigs, const D_INT elpa_solver,
+                 const char* gpu_type, const D_INT nthreads, struct ELPAinfo info);
+
+Err_INT cleanup_ELPA(struct ELPAinfo* info);
 
 #endif

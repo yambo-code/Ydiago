@@ -39,9 +39,9 @@ Err_INT Construct_BSE_RealHam(void* DmatA, D_float* matA_out);
 
 Err_INT Symplectic_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L);
 
-Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu);
+Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu, void* einfo);
 
-Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu);
+Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu, void* einfo);
 
 Err_INT check_mat_diago(void* D_mat, bool even_check);
 

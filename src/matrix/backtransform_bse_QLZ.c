@@ -1,8 +1,9 @@
 #include "matrix.h"
 
-Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu)
+Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu, void* einfo)
 {
     /*
+    For now: this function (GEMM operation) is  not gpu ported
     do a back transformation of bse eigen vectors i.e
     Z = [[I_n , 0] [0, -I_n]] @ Q @ L @ Z
     where Q = [[I_n  -i*I_n], [I_n  i*I_n]]
@@ -10,6 +11,8 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu)
     Z on input contains eigen vectors
     on output, Z gets replaced with back transformed eigen vectors (not normalized)
     DmatA and Lmat will be destroyed
+
+    GPU and einfo (elpainfo) are not used.
     */
 
     Err_INT error = check_mat_diago(DmatA, true);
@@ -149,23 +152,6 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu)
     }
     D_float factor = 1.0;
     D_INT izero = 1;
-#ifdef WITH_GPU
-    // Unfortunatly we need a completely unnecessary hermitian conjugate for elpa GPU.
-    D_float alpha = 1.0;
-    D_float beta = 0.0;
-    factor = -1.0;
-    // Transpose real part
-    if (matA->cpu_engage)
-    {
-        memcpy(Lmat, buf_real, sizeof(*Lmat) * nloc_elem);
-        SL_FunFloat(tran)(matA->gdims, matA->gdims, &alpha, Lmat,
-                          &izero, &izero, desca, &beta, buf_real, &izero, &izero, desca);
-        // Transpose imag part
-        memcpy(Lmat, buf_imag, sizeof(*Lmat) * nloc_elem);
-        SL_FunFloat(tran)(matA->gdims, matA->gdims, &alpha, Lmat,
-                          &izero, &izero, desca, &beta, buf_imag, &izero, &izero, desca);
-    }
-#endif
 
     for (D_LL_INT i = 0; i < nloc_elem; ++i)
     {
@@ -188,23 +174,16 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu)
     D_Cmplx alpha_one = 1.0;
     D_Cmplx beta_zero = 0.0;
 
-#ifdef WITH_GPU
-    // FIX ME : This must be replace with elpa_hermitain_multiply
-    SL_FunCmplx(gemm)("C", "N", matA->gdims, matZ->gdims + 1,
-                      matA->gdims + 1, &alpha_one, matA->data, &izero,
-                      &izero, desca, z_tmp, &izero,
-                      &izero, descz, &beta_zero, matZ->data,
-                      &izero, &izero, descz);
-#else
     if (matA->cpu_engage)
     {
+        // This should be ported to gpus. (elpa has it), but not sure
+        // if it will give any millage
         SL_FunCmplx(gemm)("N", "N", matA->gdims, matZ->gdims + 1,
                           matA->gdims + 1, &alpha_one, matA->data, &izero,
                           &izero, desca, z_tmp, &izero,
                           &izero, descz, &beta_zero, matZ->data,
                           &izero, &izero, descz);
     }
-#endif
 
     free(z_tmp);
 

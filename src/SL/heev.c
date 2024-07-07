@@ -13,20 +13,24 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
 {
     /*
     Note the eig_vals buffer must have the dimension of the matrix
+    and eig_vecs must have same dimension as the input matrix.
     */
     // uses p?heevR solver
-    Err_INT error = check_mat_diago(DmatA, false);
-    D_INT err_code = 0; // error code for scalapack
-    // do basic checks
-    if (error)
-    {
-        goto Heev_end;
-    }
+
     if (!eig_vals)
     {
         return ERR_NULL_PTR_BUFFER; // NUll pointer is passed
         // This is a fatal error, better return immediately!
     }
+
+    Err_INT error = check_mat_diago(DmatA, false);
+    D_INT err_code = 0; // error code for scalapack
+    // do basic checks
+    if (error)
+    {
+        return error; // Fatal error, return immediately.
+    }
+
     struct D_Matrix* matA = DmatA;
     struct D_Matrix* eig_vecs = Deig_vecs;
 

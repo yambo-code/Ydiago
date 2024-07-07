@@ -31,6 +31,12 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     */
 
     // do basic checks
+    if (!eig_vals)
+    {
+        // Fatal error, return immediately.
+        return ERR_NULL_PTR_BUFFER;
+    }
+
     struct D_Matrix* matA = DmatA;
     struct D_Matrix* eig_vecsL = Deig_vecsL;
     struct D_Matrix* eig_vecsR = Deig_vecsR;
@@ -38,14 +44,9 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     Err_INT error = check_mat_diago(matA, false);
     D_INT err_code = 0;
 
-    if (!eig_vals)
-    {
-        error = ERR_NULL_PTR_BUFFER;
-        goto end_Geev;
-    }
     if (error)
     {
-        goto end_Geev;
+        return error; // Fatal error, return immediately.
     }
 
     if (eig_vecsL)
@@ -53,14 +54,14 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         error = check_mat_diago(eig_vecsL, false);
         if (error)
         {
-            goto end_Geev;
+            return error; // Fatal error, return immediately.
         }
 
         // zero out the buffers
         error = set_zero(eig_vecsL);
         if (error)
         {
-            goto end_Geev;
+            return error; // Fatal error, return immediately.
         }
     }
 
@@ -69,14 +70,14 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         error = check_mat_diago(eig_vecsR, false);
         if (error)
         {
-            goto end_Geev;
+            return error; // Fatal error, return immediately.
         }
 
         // zero out the buffers
         error = set_zero(eig_vecsR);
         if (error)
         {
-            goto end_Geev;
+            return error; // Fatal error, return immediately.
         }
     }
     // FIX ME : We need to check if two matrices have same context, dims etc
@@ -85,7 +86,13 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     {
         // Due to restriction from P?lahqr, block size must be >= 6
         error = INCOMPATIBLE_BLOCK_SIZE_ERR;
-        goto end_Geev;
+        return error; // Fatal error, return immediately.
+    }
+
+    // zero out the eigen value buffer
+    for (D_LL_INT i = 0; i < matA->gdims[0]; ++i)
+    {
+        eig_vals[i] = 0;
     }
 
     if (!matA->cpu_engage)
@@ -99,12 +106,6 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     if (error)
     {
         goto end_Geev;
-    }
-
-    // zero out the eigen value buffer
-    for (D_LL_INT i = 0; i < matA->gdims[0]; ++i)
-    {
-        eig_vals[i] = 0;
     }
 
     D_INT izero = 1; // scalapack indices start from 1

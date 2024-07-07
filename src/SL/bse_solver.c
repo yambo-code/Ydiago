@@ -114,7 +114,7 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
     if (Wmat)
     {
 
-        error = Construct_bseW(matA, Ham_r, Wmat, NULL);
+        error = Construct_bseW(matA, Ham_r, Wmat, NULL, NULL);
 
         /*
         Since there are no solvers for skew symmetric in scalapack,
@@ -188,7 +188,7 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
 
         // back transform eigen vectors
         // [X1, X2] = [[I_n , 0] [0, -I_n]] @ Q @ L @ Z@\lambda^**-1/2
-        error = BtEig_QLZ(matA, Ham_r, Deig_vecs, NULL);
+        error = BtEig_QLZ(matA, Ham_r, Deig_vecs, NULL, NULL);
         if (error)
         {
             goto end_BSE_Solver1;

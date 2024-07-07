@@ -83,6 +83,9 @@ typedef int Err_INT;
 #define SL_TREVC_ERROR -56
 // Triangular eigenvector solver failed
 
+#define SL_EIG_SORT_ERROR -57
+// Soring of eigenvectors failed
+
 #define ELPA_SETUP_ERROR -101
 // error when setting up elpa
 
@@ -94,3 +97,8 @@ typedef int Err_INT;
 
 #define ELPA_DEALLOC_ERROR -104
 // failed to deallocated elpa
+
+#define ELPA_SKEW_SYMM_DIAGO_ERROR -105
+// Elpa skew symmetric solver failed
+
+#define ELPA_HERM_MULTIPLY_ERROR -106

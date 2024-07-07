@@ -7,9 +7,12 @@
 #ifdef WITH_ELPA
 
 Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
-                        D_INT neigs, const D_INT elpa_solver,
+                        const D_INT elpa_solver,
                         char* gpu_type, const D_INT nthreads)
 {
+    /*
+    Note the eig_vals buffer must have the dimension of the matrix
+    */
     /*
     The Matrix must have the the following structure
     |  A    B   |
@@ -40,84 +43,86 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
     The code returns [X1,X2] as eigen vectors
     */
 
-    int error = 0;
-    int mpi_error = 0;
+    int err_code = 0;
 
-    if (!D_mat)
-    { // error
-        return -1;
+    Err_INT error = check_mat_diago(DmatA, true);
+    if (error)
+    {
+        goto end_BSE_Solver0;
     }
 
-    struct D_Matrix* matA = D_mat;
-    struct D_Matrix* evecs = Deig_vecs;
+    struct D_Matrix* matA = DmatA;
+    struct D_Matrix* matZ = Deig_vecs;
 
-    if (matA->gdims[0] != matA->gdims[1])
+    if (!eig_vals)
     {
-        return -1; // error not a square matrix
+        return ERR_NULL_PTR_BUFFER;
+        // This is a fatal error, better return immediately!
     }
-
-    if (matA->block_size[0] != matA->block_size[1])
+    else
     {
-        return -1; // error block size must be square
-    }
-
-    if (matA->gdims[0] % 2)
-    {
-        return -1; // the dimension must be even
+        // zero out the eigenvalue buffer
+        for (D_LL_INT i = 0; i < matA->gdims[0]; ++i)
+        {
+            eig_vals[i] = 0;
+        }
     }
 
     D_INT ndim = matA->gdims[0] / 2;
 
-    if (neigs < 1 || neigs > ndim)
-    {
-        // errornous number of eigen values. compute all of them
-        neigs = ndim;
-    }
-
-    // we need to create a comm that participates in diagonalization
-    MPI_Comm diago_comm;
-    int colour_diago_comm = 0;
-
-    if (matA->pids[0] < 0 || matA->pids[1] < 0)
-    {
-        colour_diago_comm = 1;
-    }
-
-    int my_rank_comm;
-    MPI_Comm_rank(matA->comm, &my_rank_comm);
-
-    mpi_error = MPI_Comm_split(matA->comm, colour_diago_comm, my_rank_comm, &diago_comm);
-
-    if (colour_diago_comm)
-    {
-        goto end_BSE_Solver_elpa;
-    }
-
-    elpa_t elpa_handle;
-    error = set_ELPA(D_mat, neigs, elpa_solver, gpu_type, nthreads, diago_comm, &elpa_handle);
+    D_INT neigs = matA->gdims[0] / 2;
 
     D_LL_INT nloc_elem = matA->ldims[0] * matA->ldims[1];
 
     D_float* Ham_r = calloc(nloc_elem + 1, sizeof(*Ham_r));
+    if (!Ham_r)
+    {
+        error = BUF_ALLOC_FAILED;
+        goto end_BSE_Solver0;
+    }
 
     D_INT izero = 1;
 
     D_INT desca[9];
-    if (set_descriptor(matA, desca))
+    error = set_descriptor(matA, desca);
+    if (error)
     {
-        return -3;
+        goto end_BSE_Solver1;
     }
 
     // 1) compute the real hamilitian
     error = Construct_BSE_RealHam(matA, Ham_r);
 
-    // 2) Perform the Cholesky factorization for real symmetric matrix
-    ElpaFloat(cholesky)(handle, Ham_r, &error)
-        // L is stotred in Ham
-        if (error)
+    if (error)
     {
-        // Cholesky factorization failed, not a positive definte matrix
-        return -100;
+        goto end_BSE_Solver1;
+    }
+
+    // Elpa setup
+    struct ELPAinfo einfo;
+    error = start_ELPA(&einfo, matA->comm, matA->cpu_engage);
+    if (error)
+    {
+        goto end_BSE_Solver1;
+    }
+
+    error = set_ELPA(D_mat, neigs, elpa_solver, gpu_type, nthreads, &einfo);
+    if (error)
+    {
+        goto end_BSE_Solver1;
+    }
+
+    // 2) Perform the Cholesky factorization for real symmetric matrix
+    if (matA->cpu_engage)
+    {
+        // FIX ME : Port it to GPU
+        Elpa_FunFloat(cholesky)(einfo.handle, Ham_r, &err_code)
+    }
+    // L is stotred in Ham
+    if (err_code)
+    {
+        error = CHOLESKY_FAILED;
+        goto end_BSE_Solver2;
     }
 
     // 3) W = L^T \omega * L
@@ -126,78 +131,171 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
     */
     D_float* Wmat = calloc(nloc_elem + 1, sizeof(*Wmat));
 
-    error = Construct_bseW(matA, Ham_r, Wmat, gpu_type);
-
-    /*
-    MN : FIX ME : For elpa, there is a skew symmetric solver
-    use it instead of hermitian solver
-    */
-
-    // compute -iW and diagonalize using hermitian solver (only positive eigen values)
-    for (D_LL_INT i = 0; i < nloc_elem; ++i)
+    if (Wmat)
     {
-        // Note we diagonalize iW instead of -iW because, there is no way
-        // to get the upper part of the spectra without full diagnoalization.
-        // Due to this, all eigen values are computed with ELPA.
-        // We compute the negative eigenvalues of iW (which are +ve eigs of -iW)
-        matA->data[i] = I * Wmat[i];
+
+        error = Construct_bseW(matA, Ham_r, Wmat, gpu_type, &einfo);
+        /*
+        For Elpa there is real skew symmetric solver, so we use it,
+        We need postive eigen values of (-iW), where W is skew symmetric
+        As elpa only computes the first n eigen values, we compute the first n negative (ofcourse imaginary)
+        eigen values of skew symmetric matrix (-W), which correspond to positve eigenvalues of
+        -iW. Due to this, we always are obliged to request the full spectrum with ELPA
+        */
+        if (!error)
+        {
+            for (D_LL_INT i = 0; i < nloc_elem; ++i)
+            {
+                Wmat[i] = -Wmat[i];
+            }
+        }
+    }
+    else
+    {
+        error = BUF_ALLOC_FAILED;
+    }
+
+    if (!error && matA->cpu_engage)
+    {
+        //(elpa_t handle, double *a, double *ev, double *q, int *error)
+        D_float* evals_tmp = calloc(matA->gdims[0], sizeof(*evals_tmp));
+        D_float* evecs_tmp = calloc(2 * nloc_elem + 1, sizeof(*evecs_tmp));
+
+        if (evals_tmp && evecs_tmp)
+        {
+            // Port it to GPU
+            Elpa_FunFloat(skew_eigenvectors)(einfo.handle, Wmat, evals_tmp, evecs_tmp, &err_code);
+            if (err_code != ELPA_OK)
+            {
+                error = ELPA_SKEW_SYMM_DIAGO_ERROR;
+            }
+            else
+            {
+                for (D_LL_INT i = 0; i < neigs; ++i)
+                {
+                    // -ve sign because we diagonalized -W instead of W
+                    evals_tmp[i] = -evals_tmp[i];
+                    eig_vals[i] = evals_tmp[i];
+                }
+
+                D_INT error_sl = 0;
+
+                D_INT lwork = MAX(matA->gdims[0], (mat->ldims[0] * (matA->block_size[1] + mat->ldims[1])));
+                D_INT liwork = matA->gdims[0] + 2 * matA->block_size[1] + 2 * (MAX(matA->pgrid[0], matA->pgrid[1]));
+
+                D_float* work = calloc(lwork, sizeof(*work));
+                D_INT* iwork = calloc(liwork, sizeof(*iwork));
+                if (work && iwork)
+                {
+                    // sort real
+                    SL_FunFloat(lasrt)("I", &neigs, evals_tmp, evecs_tmp,
+                                       &izero, &izero, desca, work,
+                                       &lwork, iwork, &liwork, &error_sl);
+
+                    for (D_LL_INT i = 0; i < neigs; ++i)
+                    {
+                        evals_tmp[i] = creal(eig_vals[i]);
+                    }
+
+                    if (error_sl)
+                    {
+                        error = SL_EIG_SORT_ERROR;
+                    }
+                    // sort imag
+                    SL_FunFloat(lasrt)("I", &neigs, evals_tmp, evecs_tmp + nloc_elem,
+                                       &izero, &izero, desca, work,
+                                       &lwork, iwork, &liwork, &error_sl);
+
+                    if (!error && error_sl)
+                    {
+                        error = SL_EIG_SORT_ERROR;
+                    }
+
+                    for (D_LL_INT i = 0; i < neigs; ++i)
+                    {
+                        eig_vals[i] = evals_tmp[i];
+                    }
+                }
+                else
+                {
+                    error = SL_WORK_SPACE_ERROR;
+                }
+                free(work);
+                free(iwork);
+
+                // Copy the eigen vectors to matA
+                for (D_LL_INT i = 0; i < nloc_elem; ++i)
+                {
+                    matZ->data[i] = evecs_tmp[i] + I * evecs_tmp[i + nloc_elem];
+                }
+            }
+        }
+        else
+        {
+            error = BUF_ALLOC_FAILED;
+        }
+        free(evecs_tmp);
+        free(evals_tmp);
     }
 
     free(Wmat);
 
-    // set all elements to Zero in eig_vecs
-    for (D_LL_INT i = 0; i < evecs->ldims[0] * evecs->ldims[1]; ++i)
+    if (error)
     {
-        evecs->data[i] = 0;
+        goto end_BSE_Solver2;
     }
 
-    error = Heev_Elpa(D_mat, eig_vals, Deig_vecs, neigs, elpa_solver, gpu_type, nthreads);
-
-    // back transform eigen vectors
-    // [X1, X2] = [[I_n , 0] [0, -I_n]] @ Q @ L @ Z@\lambda^**-1/2
-    error = BtEig_QLZ(matA, Ham_r, Deig_vecs, gpu_type);
-
-    D_INT descz[9];
-    if (set_descriptor(Deig_vecs, descz))
+    if (Deig_vecs)
     {
-        return -3;
-    }
+        // FIX ME : check eige_vecs
 
-    // normalize the eigen vectors with |2*lambda|**-0.5
-    for (D_INT i = 0; i < neigs; ++i)
-    {
-        // first negate the eigenvalues, because we computed for iW (instead of -iW)
-        eig_vals[i] = -eig_vals[i];
-
-        D_Cmplx alpha = csqrt(2 * cabs(eig_vals[i]));
-
-        if (cabs(alpha) < 1e-8)
+        // back transform eigen vectors
+        // [X1, X2] = [[I_n , 0] [0, -I_n]] @ Q @ L @ Z@\lambda^**-1/2
+        error = BtEig_QLZ(matA, Ham_r, Deig_vecs, gpu_type);
+        if (error)
         {
-            // FIX ME : NM: This is an error because we only want eigen values >0
-            continue;
+            goto end_BSE_Solver2;
         }
-        else
-        {
-            alpha = 1.0 / alpha;
-        }
-        D_INT jx = i + 1;
 
-        SL_FunCmplx(scal)(evecs->gdims, &alpha, evecs->data, &izero, &jx, descz, &izero);
+        D_INT descz[9];
+        error = set_descriptor(Deig_vecs, descz);
+        if (error)
+        {
+            goto end_BSE_Solver2;
+        }
+
+        if (matA->cpu_engage)
+        {
+            // normalize the eigen vectors with |2*lambda|**-0.5
+            for (D_INT i = 0; i < neigs; ++i)
+            {
+                D_Cmplx alpha = csqrt(2 * cabs(eig_vals[i]));
+
+                if (cabs(alpha) < 1e-8)
+                {
+                    // FIX ME : NM: This is an error because we only want eigen values >0
+                    continue;
+                }
+                else
+                {
+                    alpha = 1.0 / alpha;
+                }
+                D_INT jx = i + 1;
+
+                SL_FunCmplx(scal)(matZ->gdims, &alpha, matZ->data, &izero, &jx, descz, &izero);
+            }
+            // sort the eigen values the eigen vectors according to the absoulte value
+            // FIX ME : Sort
+        }
     }
 
+end_BSE_Solver2:;
+    cleanup_ELPA(&einfo);
+
+end_BSE_Solver1:;
     free(Ham_r);
-
-    error = cleanup_ELPA(elpa_handle);
-
-end_BSE_Solver_elpa:;
-
-    // free the new comm
-    mpi_error = MPI_Comm_free(&diago_comm);
-
     // Bcast eigen values to all cpus
-    mpi_error = MPI_Bcast(eig_vals, neigs, D_Cmplx_MPI_TYPE, 0, matA->comm);
-
-    return 0;
+end_BSE_Solver0:;
+    return error;
 }
-
 #endif

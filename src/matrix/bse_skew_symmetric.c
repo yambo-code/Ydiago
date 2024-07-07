@@ -96,7 +96,7 @@ Err_INT Symplectic_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L)
     return DIAGO_SUCCESS;
 }
 
-Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu)
+Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu, void* einfo)
 {
     /* This routine constructs W = L^T * |0    I_n| * L where L is the lower
     ------------------------------------ |-I_n   0| ------------------------
@@ -111,6 +111,13 @@ Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu)
     Wmat : output contains W (output)
     */
     // compute \omega \time L, where \omega is Symplectic matrix
+    // einfo is elpa hander. only refernced when compiled with GPU flag
+
+    /*
+    GPU and einfo (elpainfo) are not used.
+    *** This function (GEMM operation) is not GPU ported.
+
+    */
 
     Err_INT error = check_mat_diago(DmatA, true);
 
@@ -149,27 +156,16 @@ Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu)
         return error;
     }
 
-#ifdef WITH_GPU
-    if (!gpu)
+    if (matA->cpu_engage)
     {
-#endif
-        if (matA->cpu_engage)
-        {
-            SL_FunFloat(trmm)("L", "L", "T",
-                              "N", matA->gdims, matA->gdims,
-                              &alpha, Lmat, &izero,
-                              &izero, desca, Wmat,
-                              &izero, &izero, desca);
-        }
-#ifdef WITH_GPU
+        // This should be ported to gpus. (elpa has it), but not sure
+        // if it will give any millage.
+        SL_FunFloat(trmm)("L", "L", "T",
+                          "N", matA->gdims, matA->gdims,
+                          &alpha, Lmat, &izero,
+                          &izero, desca, Wmat,
+                          &izero, &izero, desca);
     }
-    else
-    {
-        // FIX ME: THis functions is fake
-        error = ELPA_FGemm_gpu(matA, Lmat, Wmat, gpu);
-        return error;
-    }
-#endif
 
     return error;
 }

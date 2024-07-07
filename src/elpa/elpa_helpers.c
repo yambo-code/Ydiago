@@ -4,32 +4,73 @@
 
 #ifdef WITH_ELPA
 
+Err_INT start_ELPA(struct ELPAinfo* info, MPI_Comm comm, const bool cpu_engage)
+{
+    if (!info)
+    {
+        return ERR_NULL_PTR_BUFFER;
+    }
+
+    info->cpu_engage = cpu_engage;
+
+    int colour_diago_comm = 0;
+
+    if (!cpu_engage)
+    {
+        colour_diago_comm = 1;
+    }
+
+    int my_rank_comm;
+    if (MPI_Comm_rank(comm, &my_rank_comm))
+    {
+        return DIAGO_MPI_ERROR;
+    }
+
+    if (MPI_Comm_split(comm, colour_diago_comm, my_rank_comm, &info->elpa_comm))
+    {
+        return DIAGO_MPI_ERROR;
+    }
+
+    if (cpu_engage)
+    {
+        if (elpa_init(SUPPORTED_ELPA_VERSION) != ELPA_OK)
+        { // elpa version is not supported
+            return ELPA_UNSUPPORTED_ERROR;
+        }
+
+        int error = 0;
+        info->handle = elpa_allocate(&error);
+
+        if (error != ELPA_OK)
+        {
+            return ELPA_SETUP_ERROR;
+        }
+    }
+
+    return DIAGO_SUCCESS;
+}
+
 Err_INT set_ELPA(const void* D_mat, const D_INT neigs, const D_INT elpa_solver,
-                 const char* gpu_type, const D_INT nthreads, MPI_Comm sub_comm, elpa_t* elpa_handle)
+                 const char* gpu_type, const D_INT nthreads, struct ELPAinfo info)
 {
     /*
     Supported types for gputypes : "nvidia-gpu", "amd-gpu", "intel-gpu"
     Value are only set when they are > 0, if <0, they will be ignored
     */
+    if (!info.cpu_engage)
+    {
+        return DIAGO_SUCCESS; // cpu does not participate
+    }
+
+    MPI_Comm elpa_comm = info.comm;
+    elpa_t handle = info.handle;
+
     int error = check_mat_diago(D_mat, false);
     if (error)
     {
         return error;
     }
     const struct D_Matrix* mat = D_mat;
-
-    if (elpa_init(SUPPORTED_ELPA_VERSION) != ELPA_OK)
-    { // elpa version is not supported
-        return ELPA_UNSUPPORTED_ERROR;
-    }
-
-    elpa_t handle = elpa_allocate(&error);
-    *elpa_handle = handle;
-
-    if (error != ELPA_OK)
-    {
-        return ELPA_SETUP_ERROR;
-    }
 
     /* Set parameters the matrix and it's MPI distribution */
     elpa_set_integer(handle, "na", mat->gdims[0], &error);
@@ -75,9 +116,8 @@ Err_INT set_ELPA(const void* D_mat, const D_INT neigs, const D_INT elpa_solver,
         return ELPA_SETUP_ERROR;
     }
 
-    elpa_set_integer(handle, "mpi_comm_parent", MPI_Comm_c2f(sub_comm), &error);
-    // the MPI communicator. Note we use sub_comm instead of mat-comm, this
-    // is because elpa excepts that all cpus in comm call the function.
+    elpa_set_integer(handle, "mpi_comm_parent", MPI_Comm_c2f(elpa_comm), &error);
+
     if (error != ELPA_OK)
     {
         return ELPA_SETUP_ERROR;
@@ -127,6 +167,18 @@ Err_INT set_ELPA(const void* D_mat, const D_INT neigs, const D_INT elpa_solver,
             return ELPA_SETUP_ERROR;
         }
 
+        elpa_set_integer(handle, "gpu_hermitian_multiply", 1, &error);
+        if (error != ELPA_OK)
+        {
+            return ELPA_SETUP_ERROR;
+        }
+
+        elpa_set_integer(handle, "gpu_cholesky", 1, &error);
+        if (error != ELPA_OK)
+        {
+            return ELPA_SETUP_ERROR;
+        }
+
         error = elpa_setup_gpu(handle);
         if (error != ELPA_OK)
         {
@@ -158,20 +210,37 @@ Err_INT set_ELPA(const void* D_mat, const D_INT neigs, const D_INT elpa_solver,
     return error;
 }
 
-Err_INT cleanup_ELPA(const elpa_t elpa_handle)
+Err_INT cleanup_ELPA(struct ELPAinfo* info)
 {
-    //  cleanup
-    int error;
-    elpa_deallocate(elpa_handle, &error);
-    if (error != ELPA_OK)
+    if (!info)
     {
-        return ELPA_DEALLOC_ERROR;
+        return DIAGO_SUCCESS;
     }
 
-    elpa_uninit(&error);
-    if (error != ELPA_OK)
+    //  cleanup
+    int error = 0, error2 = 0;
+
+    if (info->cpu_engage)
     {
-        return ELPA_UNINIT_ERROR;
+
+        elpa_deallocate(info->handle, &error);
+        if (error != ELPA_OK)
+        {
+            error = ELPA_DEALLOC_ERROR;
+        }
+
+        elpa_uninit(&error2);
+        if (!error && error2 != ELPA_OK)
+        {
+            error = ELPA_UNINIT_ERROR;
+        }
+    }
+
+    error2 = MPI_Comm_free(&info->elpa_comm);
+    // Bcast eigen values to all cpus
+    if (!error && error2)
+    {
+        error = DIAGO_MPI_ERROR;
     }
 
     return error;
