@@ -49,6 +49,11 @@ void SL_FunFloat(lasrt)(char* id, D_INT* n, D_float* d, D_float* q,
                         D_INT* iq, D_INT* jq, D_INT* descq, D_float* work,
                         D_INT* lwork, D_INT* iwork, D_INT* liwork, D_INT* info);
 
+void SL_FunFloat(tradd)(char* uplo, char* trans, D_INT* m, D_INT* n,
+                        D_float* alpha, D_float* a, D_INT* ia, D_INT* ja,
+                        D_INT* desca, D_float* beta, D_float* c, D_INT* ic,
+                        D_INT* jc, D_INT* descc);
+
 void SL_FunCmplx(gemm)(char* transa, char* transb, D_INT* m, D_INT* n,
                        D_INT* k, D_Cmplx* alpha, D_Cmplx* a, D_INT* ia,
                        D_INT* ja, D_INT* desca, D_Cmplx* b, D_INT* ib,

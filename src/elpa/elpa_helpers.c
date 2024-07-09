@@ -50,7 +50,7 @@ Err_INT start_ELPA(struct ELPAinfo* info, MPI_Comm comm, const bool cpu_engage)
     return DIAGO_SUCCESS;
 }
 
-Err_INT set_ELPA(const void* D_mat, const D_INT neigs, const D_INT elpa_solver,
+Err_INT set_ELPA(void* D_mat, const D_INT neigs, const D_INT elpa_solver,
                  const char* gpu_type, const D_INT nthreads, struct ELPAinfo info)
 {
     /*
@@ -62,7 +62,7 @@ Err_INT set_ELPA(const void* D_mat, const D_INT neigs, const D_INT elpa_solver,
         return DIAGO_SUCCESS; // cpu does not participate
     }
 
-    MPI_Comm elpa_comm = info.comm;
+    MPI_Comm elpa_comm = info.elpa_comm;
     elpa_t handle = info.handle;
 
     int error = check_mat_diago(D_mat, false);

@@ -44,12 +44,3 @@ Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu, voi
 Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu, void* einfo);
 
 Err_INT check_mat_diago(void* D_mat, bool even_check);
-
-// elpa related stuff
-#ifdef WITH_ELPA
-Err_INT set_ELPA(const void* D_mat, const D_INT neigs, const D_INT elpa_solver,
-                 const char* gpu_type, const D_INT nthreads,
-                 MPI_Comm sub_comm, elpa_t* elpa_handle);
-
-Err_INT cleanup_ELPA(const elpa_t elpa_handle);
-#endif

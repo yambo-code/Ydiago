@@ -50,9 +50,13 @@ int main(int argc, char* argv[])
     D_INT nfound = Grows / 2;
 
 #ifdef TEST_ELPA
-    // error = Heev_Elpa(Matrix_A, eig_vals, Matrix_Z, nfound, 2, NULL, 1);
+    if (!my_rank)
+        printf("ELPA Heev\n");
+    error = BSE_Solver_Elpa(Matrix_A, eig_vals, Matrix_Z, 2, NULL, 1);
 #else
     // Geev(Matrix, eig_vals, NULL, Matrix_Z);
+    if (!my_rank)
+        printf("Scalapack Heev\n");
     D_INT range[2] = { Grows / 2 + 1, Grows };
     error = BSE_Solver(Matrix_A, range, NULL, eig_vals, Matrix_Z, &nfound);
 #endif

@@ -22,11 +22,11 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
 
 // elpa hermitian solver
 #ifdef WITH_ELPA
-Err_INT Heev_Elpa(const void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
+Err_INT Heev_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
                   D_INT neigs, const D_INT elpa_solver,
                   const char* gpu_type, const D_INT nthreads);
 
 Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
-                        D_INT neigs, const D_INT elpa_solver,
+                        const D_INT elpa_solver,
                         char* gpu_type, const D_INT nthreads);
 #endif

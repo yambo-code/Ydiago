@@ -61,11 +61,17 @@ D_float check_eig_vecs(void* D_mat, D_Cmplx* eig_vals,
     error = set_descriptor(eig_vecs, descz);
     check_error(error);
 
+    D_INT izero = 1;
+
+    D_Cmplx alphas = 0.0;
+    // set the eigevalues which are not computed to zero
+    for (D_INT jx = neigs + 1; jx <= eig_vecs->gdims[0]; ++jx)
+    {
+        SL_FunCmplx(scal)(eig_vecs->gdims, &alphas, eig_vecs->data, &izero, &jx, descz, &izero);
+    }
     // A*Z (n,n) (n,z)
     D_Cmplx alpha = 1.0;
     D_Cmplx beta = 0.0;
-
-    D_INT izero = 1;
 
     SL_FunCmplx(gemm)("N", "N", matA->gdims, matA->gdims,
                       matA->gdims, &alpha, matA->data, &izero,

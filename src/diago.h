@@ -6,9 +6,6 @@
 #include <math.h>
 #include <stdbool.h>
 #include "common/error.h"
-#ifdef WITH_ELPA
-#include <elpa/elpa.h>
-#endif
 
 #define SUPPORTED_ELPA_VERSION 20170403
 //====== Requries ELPA vesrion > 20170403

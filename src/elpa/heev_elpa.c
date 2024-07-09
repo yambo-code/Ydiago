@@ -4,7 +4,7 @@
 
 // FIX MEEEE USe type specific elpa interface
 
-Err_INT Heev_Elpa(const void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
+Err_INT Heev_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
                   D_INT neigs, const D_INT elpa_solver,
                   const char* gpu_type, const D_INT nthreads)
 {
@@ -89,7 +89,7 @@ elpa_herm_end:;
         error = error1;
     }
 
-    mpi_error = MPI_Bcast(eig_vals, neigs, D_Cmplx_MPI_TYPE, 0, mat->comm);
+    int mpi_error = MPI_Bcast(eig_vals, neigs, D_Cmplx_MPI_TYPE, 0, mat->comm);
     if (!error && mpi_error)
     {
         error = DIAGO_MPI_ERROR;

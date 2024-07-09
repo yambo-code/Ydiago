@@ -50,9 +50,13 @@ int main(int argc, char* argv[])
     D_INT nfound = Grows;
 
 #ifdef TEST_ELPA
+    if (!my_rank)
+        printf("ELPA Heev\n");
     error = Heev_Elpa(Matrix_A, eig_vals, Matrix_Z, nfound, 2, NULL, 1);
 #else
     // Geev(Matrix, eig_vals, NULL, Matrix_Z);
+    if (!my_rank)
+        printf("Scalapack Heev\n");
     D_INT range[2] = { 1, Grows };
     error = Heev(Matrix_A, 'L', range, NULL, eig_vals, Matrix_Z, &nfound);
 #endif
