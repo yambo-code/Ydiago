@@ -7,8 +7,8 @@
 #include <stdbool.h>
 #include "common/error.h"
 
-#define SUPPORTED_ELPA_VERSION 20170403
-//====== Requries ELPA vesrion > 20170403
+#define SUPPORTED_ELPA_VERSION 20221109
+//====== Requries ELPA vesrion > ELPA 2022.11.001
 
 #ifdef WITH_DOUBLE
 typedef double D_float;

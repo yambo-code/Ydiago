@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 void* BLACScxtInit(char layout, MPI_Comm comm, D_INT ProcX, D_INT ProcY);
+void* BLACScxtInit_Fortran(char layout, D_INT comm, D_INT ProcX, D_INT ProcY);
 void BLACScxtFree(void* mpicontxt);
 
 void* init_D_Matrix(D_INT Grows, D_INT Gcols,
@@ -22,12 +23,14 @@ Err_INT set_descriptor(void* D_mat, D_INT* desc);
 Err_INT initiateGetQueue(void* D_mat, const D_LL_INT nelements);
 
 Err_INT DMatGet(void* D_mat, const D_INT i, const D_INT j, D_Cmplx* value);
+Err_INT DMatGet_fortran(void* D_mat, const D_INT i, const D_INT j, D_Cmplx* value);
 
 Err_INT ProcessGetQueue(void* D_mat);
 
 Err_INT initiateSetQueue(void* D_mat, const D_LL_INT nelements);
 
 Err_INT DMatSet(void* D_mat, const D_INT i, const D_INT j, const D_Cmplx value);
+Err_INT DMatSet_fortran(void* D_mat, const D_INT i, const D_INT j, const D_Cmplx value);
 
 Err_INT ProcessSetQueue(void* D_mat);
 

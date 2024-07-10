@@ -266,6 +266,14 @@ error_set_queue_0:
     return error;
 }
 
+
+
+// Fortran interface
+Err_INT DMatSet_fortran(void* D_mat, const D_INT i, const D_INT j, const D_Cmplx value)
+{
+    return DMatSet(D_mat, i-1, j-1, value);
+}
+
 // compartor for qsort
 static int cmpSetElements(const void* a, const void* b)
 {
