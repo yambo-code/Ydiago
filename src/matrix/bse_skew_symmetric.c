@@ -2,12 +2,12 @@
 // builds the skew symmetric matrix required when diagonalizing non-TDA bse
 // hamiliton.
 
-Err_INT Symplectic_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L)
+Err_INT Omega_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L)
 {
     /*
     If L is lower triangular matrix, then this function returns
-    \Omega @ L where \Omega is Symplectic matrix |0    I_n|
-    -------------------------------------------  |-I_n   0|
+    \Omega @ L where \Omega is  |0    I_n|
+    --------------------------  |-I_n   0|
     DmatA : is the original BSE hamiliton (only used to read BLACS variables)
     L : on input contains L
     out_Omega_L contains the output \Omega @ L
@@ -110,7 +110,7 @@ Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu, voi
     Lmat :  contains L  (input)
     Wmat : output contains W (output)
     */
-    // compute \omega \time L, where \omega is Symplectic matrix
+    // compute \omega \time L, where \omega is [[0,I_n][-I_n,0]]
     // einfo is elpa hander. only refernced when compiled with GPU flag
 
     /*
@@ -136,7 +136,7 @@ Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu, voi
         }
     }
 
-    error = Symplectic_times_L(DmatA, Lmat, Wmat);
+    error = Omega_times_L(DmatA, Lmat, Wmat);
 
     if (error)
     {

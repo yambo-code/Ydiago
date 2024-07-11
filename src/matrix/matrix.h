@@ -40,7 +40,7 @@ Err_INT set_zero(void* DmatA); // zero out matrix
 
 Err_INT Construct_BSE_RealHam(void* DmatA, D_float* matA_out);
 
-Err_INT Symplectic_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L);
+Err_INT Omega_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L);
 
 Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu, void* einfo);
 

@@ -274,7 +274,7 @@ module YDIAGO_interface
         !
         type(c_ptr), value :: value1
         ! Pointer to YDiago_cmplx c_loc(A(i,j))
-        ! NM : Not sure we can pass A(i,j), gfortran passes address
+        ! NM : FIX ME: Not sure we can pass A(i,j), gfortran passes address
         ! but is it compiler dependent? For now stick to hardway
         !complex(YDIAGO_CMPLX) :: value1
       end function DMatGet_fortran
