@@ -207,7 +207,7 @@ module YDIAGO_interface
   
       ! Function: BLACScxtFree
       subroutine BLACScxtFree(mpicontxt) bind(C, name="BLACScxtFree")
-        ! Free's the BLACScxt created with BLACScxtInit_Fortran.
+        ! Frees the BLACScxt created with BLACScxtInit_Fortran.
         import :: c_ptr
         type(c_ptr), value :: mpicontxt
       end subroutine BLACScxtFree
