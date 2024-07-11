@@ -1,6 +1,6 @@
-*.zip
-*.DS_Store
-*.o
+**.zip
+**.DS_Store
+**.o
 git.sh
 version*
 **un~
