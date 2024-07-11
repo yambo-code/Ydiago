@@ -1,5 +1,5 @@
 *.zip
-.DS_Store
+*.DS_Store
 *.o
 git.sh
 version*
