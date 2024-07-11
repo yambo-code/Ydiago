@@ -2,7 +2,7 @@ CC                  :=  mpicc
 FC                  :=  mpifort
 AR                  :=  ar
 
-CFLAGS       	    := -O3 -mcpu=apple-m1 #-O1 -g -fsanitize=address -fno-omit-frame-pointer # for mkl add 
+CFLAGS       	    := -O1 -g -fsanitize=address -fno-omit-frame-pointer # for mkl add 
 OPENMP_FLAGS   	    := #-DWITH_ELPA #-DELPH_OMP_PARALLEL_BUILD ## uncomment for openmp build
 
 ELPA_INC            :=  
