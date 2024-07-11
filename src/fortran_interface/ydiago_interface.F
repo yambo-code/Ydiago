@@ -21,7 +21,7 @@ module YDIAGO_interface
       ! Function: Heev
       integer(ERROR_INT) function Heev(DmatA, ulpo, neigs_range, eigval_range, eig_vals, Deig_vecs, neig_found) bind(C, name="Heev")
         
-      import :: c_ptr, c_char, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+      import :: c_ptr, c_char, YDIAGO_INT, ERROR_INT
         
         type(c_ptr), value :: DmatA 
         ! distributed matrix which we want to diagonalize
@@ -29,15 +29,18 @@ module YDIAGO_interface
         character(c_char), value :: ulpo
         ! 'U' if upper triangule is set, 'L' is lower. We only need to set either upper or lower
         
-        type(c_ptr), value :: neigs_range ! c_loc(neigs_range(2)) or pass c_null_ptr
+        type(c_ptr), value :: neigs_range 
+        ! c pointer to YDIAGO_INT  type (target) array i.e c_loc(neigs_range(2)) or pass c_null_ptr
         ! index range of eigenvalues & vectors required. for Ex: if we need 10-100 eigenvlaues then is [10,100]
         
         type(c_ptr), value :: eigval_range !c_loc(eigval_range(2)) or pass c_null_ptr
+        ! c pointer to YDIAGO_FLOAT  type (target) array i.e c_loc(eigval_range(2)) or pass c_null_ptr
         ! range of eigenvalues & vectors required. (use either neigs_range or eigval_range and pass c_null_ptr)
         ! passing c_null_ptr for both neigs_range and eigval_range will simply compute all eigenvalues and eigenvectors.
         
-        complex(YDIAGO_CMPLX) :: eig_vals(:)
+        type(c_ptr), value :: eig_vals
         ! Eigenvalues array of dimesion same as size of matrix (Enough though only subset is wanted).
+        ! c_loc(eig_vals(2)) Type (YDIAGO_CMPLX) 
         ! Note :Every process gets the full set
         
         type(c_ptr), value :: Deig_vecs
@@ -50,21 +53,24 @@ module YDIAGO_interface
       ! Function: BSE_Solver
       integer(ERROR_INT) function BSE_Solver(DmatA, neigs_range, eigval_range, eig_vals, Deig_vecs, neigs_found) bind(C, name="BSE_Solver")
         
-        import :: c_ptr, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, YDIAGO_INT, ERROR_INT
         
         type(c_ptr), value :: DmatA
         ! distributed matrix which we want to diagonalize. The entire matrix must be filled !
         ! ! (2n, 2n) where n is size of resonant block
         
-        type(c_ptr), value :: neigs_range ! c_loc(neigs_range(2)) or pass c_null_ptr
+        type(c_ptr), value :: neigs_range 
+        ! c pointer to YDIAGO_INT  type (target) array i.e c_loc(neigs_range(2)) or pass c_null_ptr
         ! index range of eigenvalues & vectors required. for Ex: if we need 10-100 eigenvlaues then is [10,100]
 
-        type(c_ptr), value :: eigval_range !c_loc(eigval_range(2)) or pass c_null_ptr
+        type(c_ptr), value :: eigval_range 
+        ! c pointer to YDIAGO_FLOAT  type (target) array i.e c_loc(eigval_range(2)) or pass c_null_ptr
         ! range of eigenvalues & vectors required. (use either neigs_range or eigval_range and pass c_null_ptr)
-        ! passing c_null_ptr for neigs_range and eigval_range will simply compute all eigenvalues.
+        ! passing c_null_ptr for both neigs_range and eigval_range will simply compute all eigenvalues and eigenvectors.
         
-        complex(YDIAGO_CMPLX) :: eig_vals(:)
+        type(c_ptr), value :: eig_vals
         ! Eigenvalues array of dimesion same as size of matrix (Enough though only subset is wanted).
+        ! c_loc(eig_vals(2)) Type (YDIAGO_CMPLX)
         ! Note :Every process gets the full set
         
         type(c_ptr), value :: Deig_vecs
@@ -91,13 +97,14 @@ module YDIAGO_interface
       ! Note for now donot use this function, due to numerical unstability of some of scalapack functions
       ! the errors comeout to be are large. This is just a ref implementation and can be changed in future 
       ! if they improve scalapack functions !
-      import :: c_ptr, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+      import :: c_ptr, YDIAGO_INT, ERROR_INT
 
         type(c_ptr), value :: DmatA
         ! distributed matrix which we want to diagonalize. The entire matrix must be filled !
         
-        complex(YDIAGO_CMPLX) :: eig_vals(:)
-        ! Eigenvalues array of dimesion same as size of matrix.
+        type(c_ptr), value ::  eig_vals
+        ! Eigenvalues array of dimesion same as size of matrix (Enough though only subset is wanted).
+        ! c_loc(eig_vals(2)) Type (YDIAGO_CMPLX)
         ! Note :Every process gets the full set
 
         type(c_ptr), value :: Deig_vecsL
@@ -111,13 +118,14 @@ module YDIAGO_interface
       ! Function: Heev_Elpa
       integer(ERROR_INT) function Heev_Elpa(D_mat, eig_vals, Deig_vecs, neigs, elpa_solver, gpu_type, nthreads) bind(C, name="Heev_Elpa")
 
-        import :: c_ptr, c_char, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, c_char, YDIAGO_INT, ERROR_INT
       
         type(c_ptr), value :: D_mat
         ! distributed matrix which we want to diagonalize. The entire matrix must be filled !
         
-        complex(YDIAGO_CMPLX) :: eig_vals(:)
+        type(c_ptr), value ::  eig_vals
         ! Eigenvalues array of dimesion same as size of matrix (Enough though only subset is wanted).
+        ! c_loc(eig_vals(2)) Type (YDIAGO_CMPLX)
         ! Note :Every process gets the full set
 
         type(c_ptr), value :: Deig_vecs
@@ -146,14 +154,15 @@ module YDIAGO_interface
       ! Function: BSE_Solver_Elpa
       integer(ERROR_INT) function BSE_Solver_Elpa(D_mat, eig_vals, Deig_vecs, elpa_solver, gpu_type, nthreads) bind(C, name="BSE_Solver_Elpa")
         ! This will diagonalize full hamilitioan (unlike scalapack version)
-        import :: c_ptr, c_char, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, c_char, YDIAGO_INT, ERROR_INT
         
         type(c_ptr), value :: D_mat
         ! distributed matrix which we want to diagonalize. The entire matrix must be filled !
         ! ! (2n, 2n) where n is size of resonant block
 
-        complex(YDIAGO_CMPLX) :: eig_vals(:)
+        type(c_ptr), value ::  eig_vals
         ! Eigenvalues array of dimesion same as size of matrix (Enough though only subset is wanted).
+        ! c_loc(eig_vals(2)) Type (YDIAGO_CMPLX)
         ! Note :Every process gets the full set
 
         type(c_ptr), value :: Deig_vecs
@@ -181,7 +190,7 @@ module YDIAGO_interface
       type(c_ptr) function BLACScxtInit_Fortran(layout, comm, ProcX, ProcY) bind(C, name="BLACScxtInit_Fortran")
         ! returns a opaquie mpicontxt which has blacs grid info. 
         ! must be freed in the end with BLACScxtFree function
-        import :: c_ptr, c_char, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX
+        import :: c_ptr, c_char, YDIAGO_INT 
         
         character(c_char), value :: layout
         ! 'C' or 'R', Layout of blacs grid. Really does not matter. chose anything.    
@@ -206,7 +215,7 @@ module YDIAGO_interface
       ! Function: init_D_Matrix
       type(c_ptr) function init_D_Matrix(Grows, Gcols, blockX, blockY, mpicontxt) bind(C, name="init_D_Matrix")
         ! Initiates a Distributed 2D block cyclic matrix.
-        import :: c_ptr, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, YDIAGO_INT, ERROR_INT
         
         integer(YDIAGO_INT), value :: Grows
         ! Global number of rows of a Matrix
@@ -233,7 +242,7 @@ module YDIAGO_interface
       ! Function: set_descriptor
       integer(ERROR_INT) function set_descriptor(D_mat, desc) bind(C, name="set_descriptor")
         ! Set blacs desciptor
-        import :: c_ptr, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, YDIAGO_INT, ERROR_INT
         !
         type(c_ptr), value :: D_mat 
         !Distributed matrix
@@ -243,7 +252,7 @@ module YDIAGO_interface
       ! Function: initiateGetQueue
       integer(ERROR_INT) function initiateGetQueue(D_mat, nelements) bind(C, name="initiateGetQueue")
         ! Initate a queue to Get the indiviual elements of a Distributed matrix
-        import :: c_ptr, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, YDIAGO_INT, ERROR_INT
 
         type(c_ptr), value :: D_mat
         ! Distributed matrix
@@ -255,7 +264,7 @@ module YDIAGO_interface
       ! Function: DMatGet
       integer(ERROR_INT) function DMatGet_fortran(D_mat, i, j, value1) bind(C, name="DMatGet_fortran")
         ! Get the elements of (i,j)
-        import :: c_ptr, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, YDIAGO_INT, ERROR_INT
         !
         type(c_ptr), value :: D_mat
         !
@@ -263,14 +272,18 @@ module YDIAGO_interface
         !
         integer(YDIAGO_INT), value :: j
         !
-        complex(YDIAGO_CMPLX) :: value1
+        type(c_ptr), value :: value1
+        ! Pointer to YDiago_cmplx c_loc(A(i,j))
+        ! NM : Not sure we can pass A(i,j), gfortran passes address
+        ! but is it compiler dependent? For now stick to hardway
+        !complex(YDIAGO_CMPLX) :: value1
       end function DMatGet_fortran
   
       ! Function: ProcessGetQueue
       integer(ERROR_INT) function ProcessGetQueue(D_mat) bind(C, name="ProcessGetQueue")
         ! Once every element index is given, call this function to assign the values 
         ! to the given buffer.
-        import :: c_ptr, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, ERROR_INT
         !
         type(c_ptr), value :: D_mat
       end function ProcessGetQueue
@@ -278,7 +291,7 @@ module YDIAGO_interface
       ! Function: initiateSetQueue
       integer(ERROR_INT) function initiateSetQueue(D_mat, nelements) bind(C, name="initiateSetQueue")
         ! Initate a queue to Set the indiviual elements of a Distributed matrix
-        import :: c_ptr, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, YDIAGO_INT, ERROR_INT
         !
         type(c_ptr), value :: D_mat
         !
@@ -289,7 +302,7 @@ module YDIAGO_interface
       ! Function: DMatSet
       integer(ERROR_INT) function DMatSet_fortran(D_mat, i, j, value1) bind(C, name="DMatSet_fortran")
         ! Set the (i,j) element of distributed matrix with value1
-        import :: c_ptr, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, YDIAGO_INT, YDIAGO_CMPLX, ERROR_INT
         !
         type(c_ptr), value :: D_mat
         !
@@ -304,7 +317,7 @@ module YDIAGO_interface
       integer(ERROR_INT) function ProcessSetQueue(D_mat) bind(C, name="ProcessSetQueue")
         ! Once every element index is set, call this function to assign the values 
         ! to the distributed matrix.
-        import :: c_ptr, YDIAGO_INT, YDIAGO_FLOAT, YDIAGO_CMPLX, ERROR_INT
+        import :: c_ptr, ERROR_INT
         !
         type(c_ptr), value :: D_mat
       end function ProcessSetQueue
