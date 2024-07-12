@@ -12,6 +12,7 @@ module YDIAGO_interface
     integer, parameter :: YDIAGO_CMPLX  = C_FLOAT_COMPLEX
 #endif
     integer, parameter :: YDIAGO_INT    = C_INT 
+    integer, parameter :: YDIAGO_LL_INT = C_LONG_LONG
     integer, parameter :: ERROR_INT     = C_INT 
     ! This is D_INT in diago.h. This must be set to the same.
     
@@ -252,12 +253,12 @@ module YDIAGO_interface
       ! Function: initiateGetQueue
       integer(ERROR_INT) function initiateGetQueue(D_mat, nelements) bind(C, name="initiateGetQueue")
         ! Initate a queue to Get the indiviual elements of a Distributed matrix
-        import :: c_ptr, YDIAGO_INT, ERROR_INT
+        import :: c_ptr, YDIAGO_INT, ERROR_INT, YDIAGO_LL_INT
 
         type(c_ptr), value :: D_mat
         ! Distributed matrix
 
-        integer(YDIAGO_INT), value :: nelements
+        integer(YDIAGO_LL_INT), value :: nelements
         ! Total number of elements each process is going to Get (does not have to same on all processes)
       end function initiateGetQueue
   
@@ -291,11 +292,11 @@ module YDIAGO_interface
       ! Function: initiateSetQueue
       integer(ERROR_INT) function initiateSetQueue(D_mat, nelements) bind(C, name="initiateSetQueue")
         ! Initate a queue to Set the indiviual elements of a Distributed matrix
-        import :: c_ptr, YDIAGO_INT, ERROR_INT
+        import :: c_ptr, YDIAGO_INT, ERROR_INT, YDIAGO_LL_INT
         !
         type(c_ptr), value :: D_mat
         !
-        integer(YDIAGO_INT), value :: nelements
+        integer(YDIAGO_LL_INT), value :: nelements
         ! Total number of elements each process is going to Set (does not have to same on all processes)
       end function initiateSetQueue
   

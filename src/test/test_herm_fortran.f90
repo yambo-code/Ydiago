@@ -80,7 +80,7 @@ program main
   ! Yambo calls this as Matrix folding
 
   ! Initiate the folding procedure (of element setup process)
-  error = initiateSetQueue(Matrix, ele_this_cpu)
+  error = initiateSetQueue(Matrix, INT(ele_this_cpu,kind=YDIAGO_LL_INT))
   ! each cpus is setting ele_this_cpu number of elements to the
   ! Distributed matrix.
   if (error /= 0) then
@@ -189,7 +189,7 @@ program main
   ! // Now lets us start the retrvel procedure
 
   ! First and foremost initiate the getQueue
-  error = initiateGetQueue(evecs, ele_this_cpu*grows)
+  error = initiateGetQueue(evecs, INT(ele_this_cpu*grows,kind=YDIAGO_LL_INT))
 
   ! Check the error
   if (error /= 0) then
