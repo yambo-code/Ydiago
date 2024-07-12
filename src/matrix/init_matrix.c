@@ -31,7 +31,6 @@ void* BLACScxtInit(char layout, MPI_Comm comm, D_INT ProcX, D_INT ProcY)
     return contxt;
 };
 
-
 void* BLACScxtInit_Fortran(char layout, D_INT comm, D_INT ProcX, D_INT ProcY)
 {
     // fortran interface

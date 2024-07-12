@@ -288,11 +288,10 @@ error_get_queue_0:
     return error;
 }
 
-
 // Fortran version of get element
 Err_INT DMatGet_fortran(void* D_mat, const D_INT i, const D_INT j, D_Cmplx* value)
 {
-    return DMatGet(D_mat, i-1, j-1, value);
+    return DMatGet(D_mat, i - 1, j - 1, value);
 }
 
 // compartor for qsort
