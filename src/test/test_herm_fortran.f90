@@ -198,7 +198,7 @@ program main
   
   do jc = shift+1, shift+ele_this_cpu
     do ir = 1, grows
-      error = dmatget_fortran(evecs, ir,jc, c_loc(eig_vectors(ir,jc)))
+      error = dmatget_fortran(evecs, ir,jc, c_loc(eig_vectors(ir,jc-shift)))
       if (error /= 0) then
         print *, error
         call mpi_abort(mpi_comm_world, 1, ierr)
