@@ -215,7 +215,7 @@ program main
   ! if (my_rank == 0) then
   !   do jc = shift+1, shift+ele_this_cpu
   !     do ir = 1, grows
-  !       print *, eig_vectors(ir,jc)
+  !       print *, eig_vectors(ir,jc-shift)
   !     enddo
   !   enddo
   ! endif 
@@ -224,7 +224,7 @@ program main
   if (my_rank == 0) then
     print *, 'Printing Norms'
     do jc = shift+1, shift+ele_this_cpu
-        print *, sqrt( sum(abs(eig_vectors(:,jc)**2 )))
+        print *, sqrt( sum(abs(eig_vectors(:,jc-shift)**2 )))
     enddo
   endif 
 
