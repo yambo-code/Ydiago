@@ -147,13 +147,12 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         {
             for (D_INT j = 1; j <= matA->gdims[0]; ++j)
             {
-                if (j < i-1)
+                if (j < i - 1)
                 {
                     SL_FunCmplx(elset)(matA->data, &i, &j, desca, &cmplx_zero);
                 }
             }
         }
-
     }
     else
     {
