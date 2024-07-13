@@ -140,6 +140,20 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         // Compute the Hessenberg reduction
         SL_FunCmplx(gehrd)(matA->gdims, &izero, matA->gdims, matA->data,
                            &izero, &izero, desca, tau, hess_work, &lwork, &err_code);
+
+        D_Cmplx cmplx_zero = 0.0;
+        // Force it to be strictly in upper hessenberg form i.e aij = 0 for j < i-1
+        for (D_INT i = 1; i <= matA->gdims[0]; ++i)
+        {
+            for (D_INT j = 1; j <= matA->gdims[0]; ++j)
+            {
+                if (j < i-1)
+                {
+                    SL_FunCmplx(elset)(matA->data, &i, &j, desca, &cmplx_zero);
+                }
+            }
+        }
+
     }
     else
     {

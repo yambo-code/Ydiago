@@ -104,3 +104,5 @@ void SL_FunCmplx(trevc)(char* side, char* howmny, D_INT* select, D_INT* n,
 
 void SL_FunCmplx(scal)(D_INT* n, D_Cmplx* a, D_Cmplx* x, D_INT* ix,
                        D_INT* jx, D_INT* descx, D_INT* incx);
+
+void SL_FunCmplx(elset)(D_Cmplx* a, D_INT* i, D_INT* j, D_INT* desca, D_Cmplx * alpha);
