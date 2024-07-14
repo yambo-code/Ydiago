@@ -1,9 +1,5 @@
 // This file contains Generalized eigen solver
 
-/*
-!!!! WARNING: This functions is numerically unstable
-*/
-
 #include "../solvers.h"
 #include "../matrix/matrix.h"
 #include "scalapack_header.h"
@@ -12,15 +8,13 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
              void* Deig_vecsL, void* Deig_vecsR)
 {
     // diagozalized any matrix
-    /***** Note : this is input destructive function i.e DmatA will
-    no-longer has the original matrix. ****/
-
-    /* WARNING : Unlike for hermitian case, there is no direct solver for non-hermitian.
+    /*  Unlike for hermitian case, there is no direct solver for non-hermitian.
         This function is constructed from the individual pieces that were implemented in
         scalapack library.
-        ** This function is numerically unstable due to unstablity of Schur decomposition
-        function (p?lahqr) and slightly due to lack of balancing function (p?gebal)
 
+        ! Once can improve the accuracy by balancing with gebal, but unfortunaly,
+        ! gebal is present only for real case (MKL has complex case though)
+        
         The following three steps are performed in this function
         to diagonalize any non-hermitian matrix:
         1) Hessenberg reduction
@@ -140,19 +134,6 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         // Compute the Hessenberg reduction
         SL_FunCmplx(gehrd)(matA->gdims, &izero, matA->gdims, matA->data,
                            &izero, &izero, desca, tau, hess_work, &lwork, &err_code);
-
-        D_Cmplx cmplx_zero = 0.0;
-        // Force it to be strictly in upper hessenberg form i.e aij = 0 for j < i-1
-        for (D_INT i = 1; i <= matA->gdims[0]; ++i)
-        {
-            for (D_INT j = 1; j <= matA->gdims[0]; ++j)
-            {
-                if (j < i - 1)
-                {
-                    SL_FunCmplx(elset)(matA->data, &i, &j, desca, &cmplx_zero);
-                }
-            }
-        }
     }
     else
     {
@@ -260,6 +241,20 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         wantz = 0;
     }
 
+    // Force it to be strictly in upper hessenberg form i.e aij = 0 for j < i-1
+    D_Cmplx cmplx_zero = 0.0;
+
+    for (D_INT i = 1; i <= matA->gdims[0]; ++i)
+    {
+        for (D_INT j = 1; j <= matA->gdims[0]; ++j)
+        {
+            if (j < i - 1)
+            {
+                SL_FunCmplx(elset)(matA->data, &i, &j, desca, &cmplx_zero);
+            }
+        }
+    }
+
     D_INT iwork_tmp[4];
 
     D_INT ilwork = -1;
@@ -364,11 +359,47 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
 
     D_Cmplx* trevc_work = malloc(sizeof(*trevc_work) * 4 * desca[8]);
     D_float* trevc_rwork = malloc(sizeof(*trevc_rwork) * 4 * desca[8]);
+
+    D_INT neigs = matA->gdims[0];
+
     if (trevc_work && trevc_rwork)
     {
         SL_FunCmplx(trevc)(&side, &howmny, select, matA->gdims,
                            matA->data, desca, vl, descvl, vr, descvr,
                            &mm_trevc, matA->gdims, trevc_work, trevc_rwork, &err_code);
+
+        if (!err_code)
+        {
+            // Normalize the left and right eigen vectors with euclidian norm
+            for (D_INT i = 0; i < neigs; ++i)
+            {
+                D_float alpha = 0.0;
+                D_INT jx = i + 1;
+
+                if (Deig_vecsL)
+                {
+                    
+                    SLvec_norm2(eig_vecsL->gdims, &alpha, eig_vecsL->data, &izero, &jx, descvl, &izero);
+                    if (fabs(alpha) < 1e-8)
+                    {
+                        continue;
+                    }
+                    D_Cmplx beta = 1.0/alpha;
+                    SL_FunCmplx(scal)(eig_vecsL->gdims, &beta, eig_vecsL->data, &izero, &jx, descvl, &izero);
+                }
+
+                if (Deig_vecsR)
+                {
+                    SLvec_norm2(eig_vecsR->gdims, &alpha, eig_vecsR->data, &izero, &jx, descvr, &izero);
+                    if (fabs(alpha) < 1e-8)
+                    {
+                        continue;
+                    }
+                    D_Cmplx beta = 1.0/alpha;
+                    SL_FunCmplx(scal)(eig_vecsR->gdims, &beta, eig_vecsR->data, &izero, &jx, descvr, &izero);
+                }
+            }
+        }
     }
     else
     {
