@@ -28,10 +28,10 @@ $(TARGET): $(OBJS) $(FC_OBJS) $(F90_SRCS) make.inc
 	$(AR) rcs ./$@ $(OBJS) $(FC_OBJS) 
 
 %.o: %.c $(INCS)
-	$(CC) $(CFLAGS) -c $< $(INC_DIRS) $(OPENMP_FLAGS) -o $@
+	$(CC) $(CFLAGS) -c $< $(INC_DIRS) $(YAMBO_FLAGS) -o $@
 
 %.o: %.f90 $(F90_SRCS) $(FC_SRCS)
-	$(FC) -c $< $(INC_DIRS) $(OPENMP_FLAGS) -o $@
+	$(FC) -c $< $(INC_DIRS) $(YAMBO_FLAGS) -o $@
 
 
 %.f90: %.F $(FC_SRCS) 

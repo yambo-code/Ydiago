@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __STDC_NO_COMPLEX__
+#error Your compiler does not C99 complex numbers, Please use a supported compiler.
+#endif
+
 #include <stdlib.h>
 #include <mpi.h>
 #include <complex.h>
@@ -21,6 +25,10 @@
 
 #ifdef _OPENMP
 #define WITH_OPENMP
+#endif
+
+#if defined(WITH_GPU) && !defined(WITH_ELPA)
+#error GPU support is available only when compiled with elpa
 #endif
 
 // =========
