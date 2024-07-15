@@ -14,7 +14,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
 
         ! Once can improve the accuracy by balancing with gebal, but unfortunaly,
         ! gebal is present only for real case (MKL has complex case though)
-        
+
         The following three steps are performed in this function
         to diagonalize any non-hermitian matrix:
         1) Hessenberg reduction
@@ -378,13 +378,13 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
 
                 if (Deig_vecsL)
                 {
-                    
+
                     SLvec_norm2(eig_vecsL->gdims, &alpha, eig_vecsL->data, &izero, &jx, descvl, &izero);
                     if (fabs(alpha) < 1e-8)
                     {
                         continue;
                     }
-                    D_Cmplx beta = 1.0/alpha;
+                    D_Cmplx beta = 1.0 / alpha;
                     SL_FunCmplx(scal)(eig_vecsL->gdims, &beta, eig_vecsL->data, &izero, &jx, descvl, &izero);
                 }
 
@@ -395,7 +395,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
                     {
                         continue;
                     }
-                    D_Cmplx beta = 1.0/alpha;
+                    D_Cmplx beta = 1.0 / alpha;
                     SL_FunCmplx(scal)(eig_vecsR->gdims, &beta, eig_vecsR->data, &izero, &jx, descvr, &izero);
                 }
             }

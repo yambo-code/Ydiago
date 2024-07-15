@@ -10,6 +10,20 @@
 #define SUPPORTED_ELPA_VERSION 20221109
 //====== Requries ELPA vesrion > ELPA 2022.11.001
 
+// ======= add yambo defs ======
+#ifdef _DOUBLE
+#define WITH_DOUBLE
+#endif
+
+#ifdef _CUDA
+#define WITH_GPU
+#endif
+
+#ifdef _OPENMP
+#define WITH_OPENMP
+#endif
+
+// =========
 #ifdef WITH_DOUBLE
 typedef double D_float;
 typedef double complex D_Cmplx;
@@ -85,11 +99,3 @@ struct MPIcxt
     MPI_Comm comm; // comm
     D_INT ctxt; // context
 };
-
-#if !defined(MIN)
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#endif
-
-#if !defined(MAX)
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif

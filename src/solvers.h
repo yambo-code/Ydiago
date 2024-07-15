@@ -30,3 +30,11 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
                         const D_INT elpa_solver,
                         char* gpu_type, const D_INT nthreads);
 #endif
+
+#if !defined(MIN)
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+
+#if !defined(MAX)
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif

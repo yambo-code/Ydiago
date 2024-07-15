@@ -4,7 +4,7 @@ module YDIAGO_interface
   
     ! Define Fortran types corresponding to C types
     ! These types are define in diago.h
-#ifdef WITH_DOUBLE
+#if defined(WITH_DOUBLE) || defined(_DOUBLE)
     integer, parameter :: YDIAGO_FLOAT  = C_DOUBLE
     integer, parameter :: YDIAGO_CMPLX  = C_DOUBLE_COMPLEX
 #else
