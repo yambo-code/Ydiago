@@ -9,4 +9,4 @@ ELPA_INC            :=  # include directory of elpa
 
 
 # Notes on YAMBO_FLAGS,
-# Simply pass flags that are used in yambo. In case of elpa support, use -DWITH_ELPA
+# Simply pass flags that are used in yambo. In case of elpa support, use -DWITH_ELPA or -D_ELPA
