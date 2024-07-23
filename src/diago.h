@@ -12,7 +12,7 @@
 #include "common/error.h"
 
 #define SUPPORTED_ELPA_VERSION 20221109
-//====== Requries ELPA vesrion > ELPA 2022.11.001
+//====== Requries ELPA vesrion >= ELPA 2022.11.001
 
 // ======= add yambo defs ======
 #ifdef _DOUBLE
@@ -25,6 +25,10 @@
 
 #ifdef _OPENMP
 #define WITH_OPENMP
+#endif
+
+#ifdef _ELPA
+#define WITH_ELPA
 #endif
 
 #if defined(WITH_GPU) && !defined(WITH_ELPA)

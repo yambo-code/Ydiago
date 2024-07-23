@@ -2,8 +2,8 @@ CC                  :=  mpicc
 FC                  :=  mpifort
 AR                  :=  ar
 
-CFLAGS       	    := -O1 -g -fsanitize=address -fno-omit-frame-pointer 
-YAMBO_FLAGS   	    := #-DWITH_ELPA -D_DOUBLE -D_CUDA -D_OPENMP
+CFLAGS       	    :=  -g -fsanitize=address -fno-omit-frame-pointer 
+YAMBO_FLAGS   	    := #-D_ELPA -D_DOUBLE -D_CUDA -D_OPENMP
 
 ELPA_INC            :=  # include directory of elpa
 

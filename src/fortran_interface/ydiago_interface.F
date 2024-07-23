@@ -115,7 +115,7 @@ module YDIAGO_interface
         ! Distributed matrix for right eigenvectors. (pass c_null_ptr if not required)
       end function Geev
 
-#ifdef WITH_ELPA
+#if defined(_ELPA) || defined(WITH_ELPA)
       ! Function: Heev_Elpa
       integer(ERROR_INT) function Heev_Elpa(D_mat, eig_vals, Deig_vecs, neigs, elpa_solver, gpu_type, nthreads) bind(C, name="Heev_Elpa")
 
@@ -136,7 +136,7 @@ module YDIAGO_interface
         ! number of eigenvalues required. if neigs < diminsion of matrix, then first neigs eigenvals are computed
 
         integer(YDIAGO_INT), value :: elpa_solver
-        ! WHich Solver to use ELPA-1 or ELPA-2 (2 is generally faster on CPU's and scales good)
+        ! WHich Solver to use ELPA-1 or ELPA-2 (2 is generally faster on CPUs and scales good)
         ! Refer Elpa documentation for more details
         
         type(c_ptr), value :: gpu_type
@@ -170,7 +170,7 @@ module YDIAGO_interface
         ! Distributed matrix for eigenvectors. 
 
         integer(YDIAGO_INT), value :: elpa_solver
-        ! WHich Solver to use ELPA-1 or ELPA-2 (2 is generally faster on CPU's and scales good)
+        ! WHich Solver to use ELPA-1 or ELPA-2 (2 is generally faster on CPUs and scales good)
         ! Refer Elpa documentation for more details
 
         type(c_ptr), value :: gpu_type
