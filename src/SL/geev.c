@@ -22,6 +22,11 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         3) Solve triangular eigen value problem
         Notes :
         Due to restriction from P?lahqr function, block size must be >= 6
+
+    On output, when both Deig_vecsL and Deig_vecsR are requested, 
+    the overlap of left and right eigenvectors i.e L^H @ R is stored 
+    in DmatA.
+    In all othercase, DmatA is set to identity matrix
     */
 
     // do basic checks
@@ -398,6 +403,22 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
                     D_Cmplx beta = 1.0 / alpha;
                     SL_FunCmplx(scal)(eig_vecsR->gdims, &beta, eig_vecsR->data, &izero, &jx, descvr, &izero);
                 }
+            }
+            // compute the overlap marix and store in DmatA
+            if (Deig_vecsL && Deig_vecsR)
+            {
+                // left^H @ right -> DmatA
+                D_Cmplx c_one  = 1.0;
+                D_Cmplx c_zero = 0.0;
+                SL_FunCmplx(gemm)("C", "N", eig_vecsL->gdims + 1, eig_vecsR->gdims + 1,
+                       eig_vecsL->gdims, &c_one, eig_vecsL->data, &izero,
+                       &izero, descvl, eig_vecsR->data, &izero,
+                       &izero, descvr, &c_zero, matA->data, &izero, &izero, desca);
+            }
+            else 
+            {
+                // set DmatA to identity
+                error = set_identity(DmatA);
             }
         }
     }
