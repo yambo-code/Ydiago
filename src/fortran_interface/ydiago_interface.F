@@ -52,7 +52,8 @@ module YDIAGO_interface
       end function Heev
   
       ! Function: BSE_Solver
-      integer(ERROR_INT) function BSE_Solver(DmatA, neigs_range, eigval_range, eig_vals, Deig_vecs, neigs_found) bind(C, name="BSE_Solver")
+      integer(ERROR_INT) function BSE_Solver(DmatA, neigs_range, eigval_range, &
+      &             eig_vals, Deig_vecs, neigs_found) bind(C, name="BSE_Solver")
         
         import :: c_ptr, YDIAGO_INT, ERROR_INT
         
