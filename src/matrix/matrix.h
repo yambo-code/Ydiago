@@ -49,5 +49,3 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu, void* einf
 Err_INT check_mat_diago(void* D_mat, bool even_check);
 
 Err_INT Inverse_Dmat(void* Dmat);
-
-

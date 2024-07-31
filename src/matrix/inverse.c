@@ -9,7 +9,7 @@ Err_INT Inverse_Dmat(void* Dmat)
     /*
     Inverts a distributed matrix
     */
-    
+
     struct D_Matrix* matA = Dmat;
 
     Err_INT error = check_mat_diago(matA, false);
@@ -34,16 +34,16 @@ Err_INT Inverse_Dmat(void* Dmat)
     }
 
     // 1) compute LU decomposition
-    D_INT* ipiv = calloc( matA->ldims[0] + matA->block_size[0] + 1, sizeof *ipiv);
+    D_INT* ipiv = calloc(matA->ldims[0] + matA->block_size[0] + 1, sizeof *ipiv);
     if (ipiv)
     {
-        SL_FunCmplx(getrf)(matA->gdims, matA->gdims+1, matA->data, 
-                        &izero, &izero, desca, ipiv, &err_code);
+        SL_FunCmplx(getrf)(matA->gdims, matA->gdims + 1, matA->data,
+                           &izero, &izero, desca, ipiv, &err_code);
         if (err_code)
         {
             error = SL_LU_ERROR;
         }
-        else 
+        else
         {
             // 2) find the inverse
 
@@ -52,20 +52,20 @@ Err_INT Inverse_Dmat(void* Dmat)
             D_Cmplx work_tmp[3];
             D_INT iwork_tmp[3];
             //
-            SL_FunCmplx(getri)(matA->gdims, matA->data, &izero, &izero, 
-                    desca, ipiv, work_tmp, &lwork, iwork_tmp, &liwork, &err_code);
+            SL_FunCmplx(getri)(matA->gdims, matA->data, &izero, &izero,
+                               desca, ipiv, work_tmp, &lwork, iwork_tmp, &liwork, &err_code);
             //
-            lwork  = rint(creal(work_tmp[0]));
+            lwork = rint(creal(work_tmp[0]));
             liwork = iwork_tmp[0];
             //
-            D_Cmplx* work = malloc(sizeof(*work)*lwork);
-            D_INT* iwork  = malloc(sizeof(*iwork)*liwork);
+            D_Cmplx* work = malloc(sizeof(*work) * lwork);
+            D_INT* iwork = malloc(sizeof(*iwork) * liwork);
             //
             if (work && iwork)
             {
                 // perform the inverse
-                SL_FunCmplx(getri)(matA->gdims, matA->data, &izero, &izero, 
-                        desca, ipiv, work, &lwork, iwork, &liwork, &err_code);
+                SL_FunCmplx(getri)(matA->gdims, matA->data, &izero, &izero,
+                                   desca, ipiv, work, &lwork, iwork, &liwork, &err_code);
                 if (err_code)
                 {
                     error = SL_TRI_INV_ERROR;
@@ -79,7 +79,7 @@ Err_INT Inverse_Dmat(void* Dmat)
             free(iwork);
         }
     }
-    else 
+    else
     {
         error = BUF_ALLOC_FAILED;
     }
