@@ -20,7 +20,8 @@ module YDIAGO_interface
     interface
   
       ! Function: Heev
-      integer(ERROR_INT) function Heev(DmatA, ulpo, neigs_range, eigval_range, eig_vals, Deig_vecs, neig_found) bind(C, name="Heev")
+      integer(ERROR_INT) function Heev(DmatA, ulpo, neigs_range, eigval_range, eig_vals, &
+&                                       Deig_vecs, neig_found) bind(C, name="Heev")
         
       import :: c_ptr, c_char, YDIAGO_INT, ERROR_INT
         
@@ -52,7 +53,8 @@ module YDIAGO_interface
       end function Heev
   
       ! Function: BSE_Solver
-      integer(ERROR_INT) function BSE_Solver(DmatA, neigs_range, eigval_range, eig_vals, Deig_vecs, neigs_found) bind(C, name="BSE_Solver")
+      integer(ERROR_INT) function BSE_Solver(DmatA, neigs_range, eigval_range, eig_vals, &
+&                                        Deig_vecs, neigs_found) bind(C, name="BSE_Solver")
         
         import :: c_ptr, YDIAGO_INT, ERROR_INT
         
@@ -75,7 +77,8 @@ module YDIAGO_interface
         ! Note :Every process gets the full set
         
         type(c_ptr), value :: Deig_vecs
-        ! Distributed matrix for eigenvectors. must have same dimension as DmatA. Only eigen vectors for postive eigen values are returned
+        ! Distributed matrix for eigenvectors. must have same dimension as DmatA. Only eigen vectors for postive 
+        ! eigen values are returned
         ! You can generate eigenvalues and left/right eigenvectors of correspinding negative counterparts
         !     Eigen values come in pair i.e (-lambda, lambda).
         !     Only computes postive eigenvalues and their correspoing right
@@ -117,7 +120,8 @@ module YDIAGO_interface
 
 #if defined(_ELPA) || defined(WITH_ELPA)
       ! Function: Heev_Elpa
-      integer(ERROR_INT) function Heev_Elpa(D_mat, eig_vals, Deig_vecs, neigs, elpa_solver, gpu_type, nthreads) bind(C, name="Heev_Elpa")
+      integer(ERROR_INT) function Heev_Elpa(D_mat, eig_vals, Deig_vecs, neigs, elpa_solver, &
+&                                           gpu_type, nthreads) bind(C, name="Heev_Elpa")
 
         import :: c_ptr, c_char, YDIAGO_INT, ERROR_INT
       
@@ -153,7 +157,8 @@ module YDIAGO_interface
       end function Heev_Elpa
   
       ! Function: BSE_Solver_Elpa
-      integer(ERROR_INT) function BSE_Solver_Elpa(D_mat, eig_vals, Deig_vecs, elpa_solver, gpu_type, nthreads) bind(C, name="BSE_Solver_Elpa")
+      integer(ERROR_INT) function BSE_Solver_Elpa(D_mat, eig_vals, Deig_vecs, elpa_solver, &
+&                                                 gpu_type, nthreads) bind(C, name="BSE_Solver_Elpa")
         ! This will diagonalize full hamilitioan (unlike scalapack version)
         import :: c_ptr, c_char, YDIAGO_INT, ERROR_INT
         
