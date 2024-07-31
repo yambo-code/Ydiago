@@ -107,6 +107,14 @@ void SL_FunCmplx(scal)(D_INT* n, D_Cmplx* a, D_Cmplx* x, D_INT* ix,
 
 void SL_FunCmplx(elset)(D_Cmplx* a, D_INT* i, D_INT* j, D_INT* desca, D_Cmplx* alpha);
 
+void SL_FunCmplx(getrf)(D_INT* m, D_INT* n, D_Cmplx* a, D_INT* ia, D_INT* ja, 
+                        D_INT* desca, D_INT* ipiv, D_INT* info);
+
+void SL_FunCmplx(getri)(D_INT* n, D_Cmplx* a, D_INT* ia, D_INT* ja, D_INT* desca, 
+                        D_INT* ipiv, D_Cmplx* work, D_INT* lwork, D_INT* iwork, 
+                        D_INT* liwork, D_INT* info);
+
+
 #ifdef WITH_DOUBLE
 #define SLvec_norm2 pdznrm2_
 #else

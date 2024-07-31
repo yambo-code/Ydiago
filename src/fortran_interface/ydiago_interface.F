@@ -322,6 +322,14 @@ module YDIAGO_interface
         !
         type(c_ptr), value :: D_mat
       end function ProcessSetQueue
+
+      ! Function: Inverse.
+      integer(ERROR_INT) function Inverse_Dmat(D_mat) bind(C, name="Inverse_Dmat")
+        ! Compute inplace inverse of a distributed matrix
+        import :: c_ptr, ERROR_INT
+        !
+        type(c_ptr), value :: D_mat
+      end function Inverse_Dmat
   
     end interface
   
