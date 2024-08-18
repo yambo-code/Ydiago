@@ -2,6 +2,7 @@
 #include "../solvers.h"
 #include "../matrix/matrix.h"
 #include "scalapack_header.h"
+#include <math.h>
 
 Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
                    D_float* eigval_range, D_Cmplx* eig_vals,
@@ -24,6 +25,7 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
 
     /*
 
+    neigs_range : [1, dimension/2]
     DmatA is destroyed
 
     Eigen values come in pair i.e (-lambda, lambda).
@@ -151,19 +153,21 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
         // neig_range should start from [ndim+1]
         D_INT neigs_min = MIN(neigs_range[0], neigs_range[1]);
         D_INT neigs_max = MAX(neigs_range[0], neigs_range[1]);
-        if (neigs_min <= ndim)
+        if (neigs_min > 0 && neigs_max > 0)
         {
-            neigs_min = ndim + 1;
+            if (neigs_min < ndim && neigs_max <= ndim)
+            {
+                n_ev_range[0] = neigs_min + ndim;
+                n_ev_range[1] = neigs_max + ndim;
+            }
         }
-        n_ev_range[0] = neigs_min;
-        n_ev_range[1] = neigs_max;
     }
     if (eigval_range)
     {
-        // eigvals should start from 0.0
-        D_float eigval_min = MIN(eigval_range[0], eigval_range[1]);
-        D_float eigval_max = MAX(eigval_range[0], eigval_range[1]);
-        if (eigval_min < 0)
+        // we only find in positive range.
+        D_float eigval_min = MIN(fabs(eigval_range[0]), fabs(eigval_range[1]));
+        D_float eigval_max = MAX(fabs(eigval_range[0]), fabs(eigval_range[1]));
+        if (eigval_range[0] < 0.0 || eigval_range[1] < 0.0)
         {
             eigval_min = 0.0;
         }

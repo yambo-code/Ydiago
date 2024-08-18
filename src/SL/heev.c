@@ -72,6 +72,10 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
         range = 'I';
         il = MIN(neigs_range[0], neigs_range[1]);
         iu = MAX(neigs_range[0], neigs_range[1]);
+        if (il < 1 || iu < 1)
+        { // compute all eigen values. This is wrong config
+            range = 'A';
+        }
     }
     else if (eigval_range)
     {

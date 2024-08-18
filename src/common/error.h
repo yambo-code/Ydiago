@@ -86,6 +86,12 @@ typedef int Err_INT;
 #define SL_EIG_SORT_ERROR -57
 // Soring of eigenvectors failed
 
+#define SL_LU_ERROR -58
+// Failed to perform LU decomposition
+
+#define SL_TRI_INV_ERROR -59
+// Failed to perform triangular inversion
+
 #define ELPA_SETUP_ERROR -101
 // error when setting up elpa
 
