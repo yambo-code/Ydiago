@@ -14,6 +14,10 @@
 #define SUPPORTED_ELPA_VERSION 20221109
 //====== Requries ELPA vesrion >= ELPA 2022.11.001
 
+#define SL_WORK_QUERY_FAC 1.0001
+// This is factor introduced to workaround int to float error 
+// and float to int conversions that happen in SL work queries.
+// This must be always > 1
 // ======= add yambo defs ======
 #ifdef _DOUBLE
 #define WITH_DOUBLE

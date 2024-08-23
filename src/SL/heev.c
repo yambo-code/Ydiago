@@ -130,8 +130,8 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
         goto Heev_end1;
     }
 
-    lwork = rint(creal(work_tmp[0]));
-    lrwork = rint(rwork_tmp[0]);
+    lwork = rint(creal(work_tmp[0])*SL_WORK_QUERY_FAC);
+    lrwork = rint(rwork_tmp[0]*SL_WORK_QUERY_FAC);
     liwork = iwork_tmp[0];
 
     D_Cmplx* work = calloc(lwork, sizeof(*work));
@@ -290,8 +290,8 @@ Heev_end:;
 //         descz, work_tmp, &lwork, rwork_tmp, &lrwork, iwork_tmp,
 //         &liwork, ifail, iclustr, gap, &err_code);
 
-//     lwork  = rint(creal(work_tmp[0]));
-//     lrwork = rint(rwork_tmp[0]);
+//     lwork  = rint(creal(work_tmp[0])*SL_WORK_QUERY_FAC);
+//     lrwork = rint(rwork_tmp[0]*SL_WORK_QUERY_FAC);
 //     liwork = iwork_tmp[0];
 
 //     D_Cmplx*  work  = calloc(lwork ,sizeof(*work));
@@ -396,8 +396,8 @@ Heev_end:;
 //         &izero, &izero, descz, work_tmp,
 //         &lwork, rwork_tmp, &lrwork, iwork_tmp, &liwork, &err_code);
 
-//     lwork  = rint(creal(work_tmp[0]));
-//     lrwork = rint(rwork_tmp[0]);
+//     lwork  = rint(creal(work_tmp[0])*SL_WORK_QUERY_FAC);
+//     lrwork = rint(rwork_tmp[0]*SL_WORK_QUERY_FAC);
 //     liwork = iwork_tmp[0];
 
 //     D_Cmplx*  work  = calloc(lwork ,sizeof(*work));
