@@ -192,7 +192,7 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
 
         // back transform eigen vectors
         // [X1, X2] = [[I_n , 0] [0, -I_n]] @ Q @ L @ Z@\lambda^**-1/2
-        error = BtEig_QLZ(matA, Ham_r, Deig_vecs, NULL, NULL);
+        error = BtEig_QLZ(matA, Ham_r, Deig_vecs, neigs, NULL, NULL);
         if (error)
         {
             goto end_BSE_Solver1;

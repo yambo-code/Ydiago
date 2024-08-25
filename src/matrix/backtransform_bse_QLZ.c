@@ -1,6 +1,6 @@
 #include "matrix.h"
 
-Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu, void* einfo)
+Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu, void* einfo)
 {
     /*
     For now: this function (GEMM operation) is  not gpu ported
@@ -13,6 +13,8 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu, void* einf
     DmatA and Lmat will be destroyed
 
     GPU and einfo (elpainfo) are not used.
+    
+    DmatZ contains neig eigenvectors arranged in coloumns starting from 1
     */
 
     Err_INT error = check_mat_diago(DmatA, true);
@@ -178,7 +180,7 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, char* gpu, void* einf
     {
         // This should be ported to gpus. (elpa has it), but not sure
         // if it will give any millage
-        SL_FunCmplx(gemm)("N", "N", matA->gdims, matZ->gdims + 1,
+        SL_FunCmplx(gemm)("N", "N", matA->gdims, &neig,
                           matA->gdims + 1, &alpha_one, matA->data, &izero,
                           &izero, desca, z_tmp, &izero,
                           &izero, descz, &beta_zero, matZ->data,

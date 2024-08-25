@@ -276,7 +276,7 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
 
         // back transform eigen vectors
         // [X1, X2] = [[I_n , 0] [0, -I_n]] @ Q @ L @ Z@\lambda^**-1/2
-        error = BtEig_QLZ(matA, Ham_r, Deig_vecs, gpu_type, &einfo);
+        error = BtEig_QLZ(matA, Ham_r, Deig_vecs, neigs, gpu_type, &einfo);
         if (error)
         {
             goto end_BSE_Solver2;
