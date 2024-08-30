@@ -55,7 +55,7 @@ Err_INT Inverse_Dmat(void* Dmat)
             SL_FunCmplx(getri)(matA->gdims, matA->data, &izero, &izero,
                                desca, ipiv, work_tmp, &lwork, iwork_tmp, &liwork, &err_code);
             //
-            lwork = rint(creal(work_tmp[0])*SL_WORK_QUERY_FAC);
+            lwork = rint(creal(work_tmp[0]) * SL_WORK_QUERY_FAC);
             liwork = iwork_tmp[0];
             //
             D_Cmplx* work = malloc(sizeof(*work) * lwork);

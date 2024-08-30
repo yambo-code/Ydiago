@@ -131,7 +131,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         goto end_Geev1;
     }
 
-    lwork = rint(creal(work_tmp[0])*SL_WORK_QUERY_FAC);
+    lwork = rint(creal(work_tmp[0]) * SL_WORK_QUERY_FAC);
 
     D_Cmplx* hess_work = calloc(lwork, sizeof(*hess_work));
     if (hess_work)
@@ -205,7 +205,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
             goto end_Geev1;
         }
 
-        lwork = rint(creal(work_tmp[0])*SL_WORK_QUERY_FAC);
+        lwork = rint(creal(work_tmp[0]) * SL_WORK_QUERY_FAC);
 
         D_Cmplx* similarly_work = calloc(lwork, sizeof(*similarly_work));
 
@@ -275,7 +275,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         goto end_Geev1;
     }
 
-    lwork = rint(creal(work_tmp[0])*SL_WORK_QUERY_FAC);
+    lwork = rint(creal(work_tmp[0]) * SL_WORK_QUERY_FAC);
     ilwork = iwork_tmp[0];
 
     D_INT* iwork = malloc(sizeof(*iwork) * ilwork);

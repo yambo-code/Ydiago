@@ -13,7 +13,7 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu
     DmatA and Lmat will be destroyed
 
     GPU and einfo (elpainfo) are not used.
-    
+
     DmatZ contains neig eigenvectors arranged in coloumns starting from 1
     */
 

@@ -130,8 +130,8 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
         goto Heev_end1;
     }
 
-    lwork = rint(creal(work_tmp[0])*SL_WORK_QUERY_FAC);
-    lrwork = rint(rwork_tmp[0]*SL_WORK_QUERY_FAC);
+    lwork = rint(creal(work_tmp[0]) * SL_WORK_QUERY_FAC);
+    lrwork = rint(rwork_tmp[0] * SL_WORK_QUERY_FAC);
     liwork = iwork_tmp[0];
 
     D_Cmplx* work = calloc(lwork, sizeof(*work));

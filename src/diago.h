@@ -15,7 +15,7 @@
 //====== Requries ELPA vesrion >= ELPA 2022.11.001
 
 #define SL_WORK_QUERY_FAC 1.0001
-// This is factor introduced to workaround int to float error 
+// This is factor introduced to workaround int to float error
 // and float to int conversions that happen in SL work queries.
 // This must be always > 1
 // ======= add yambo defs ======
@@ -24,6 +24,18 @@
 #endif
 
 #ifdef _CUDA
+#define WITH_CUDA
+#endif
+
+#ifdef _HIP
+#define WITH_HIP
+#endif
+
+#if defined(_OPENMP_GPU) || defined(_MKLGPU)
+#define WITH_INTEL_GPU
+#endif
+
+#if defined(WITH_CUDA) || defined(WITH_HIP) || defined(WITH_INTEL_GPU)
 #define WITH_GPU
 #endif
 
