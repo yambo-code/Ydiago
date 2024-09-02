@@ -42,8 +42,11 @@ typedef int Err_INT;
 #define INCOMPATIBLE_BLOCK_SIZE_ERR -12
 // Incompatible block size
 
-#define INCOMPATIBLE_EIG_VECS_DIM_ERR
+#define INCOMPATIBLE_EIG_VECS_DIM_ERR -13
 // Dimesion of eigen vectors not compatible with matrix
+
+#define GPU_ALLOC_FAILED -14
+// Failed to allocate memory on GPU
 
 #define QUEUE_ALREADY_INIT 1
 // Only one set and one get queue can be set at a time.

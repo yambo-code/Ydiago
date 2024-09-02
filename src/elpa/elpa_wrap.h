@@ -3,6 +3,7 @@
 #include "../matrix/matrix.h"
 #include "../diago.h"
 #include "../solvers.h"
+#include "../common/gpu_helpers.h"
 #ifdef WITH_ELPA
 
 #define HAVE_SKEWSYMMETRIC // This is for elpa and must be before elpa/elpa.h

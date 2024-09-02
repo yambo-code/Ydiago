@@ -114,6 +114,12 @@ void SL_FunCmplx(getri)(D_INT* n, D_Cmplx* a, D_INT* ia, D_INT* ja, D_INT* desca
                         D_INT* ipiv, D_Cmplx* work, D_INT* lwork, D_INT* iwork,
                         D_INT* liwork, D_INT* info);
 
+void SL_FunCmplx(geadd)( char *trans, D_INT *m, D_INT *n, D_Cmplx *alpha, 
+                        D_Cmplx *a, D_INT *ia, D_INT *ja, D_INT *desca, 
+                        D_Cmplx *beta, D_Cmplx *c, D_INT *ic, D_INT *jc, D_INT *descc );
+
+
+
 #ifdef WITH_DOUBLE
 #define SLvec_norm2 pdznrm2_
 #else

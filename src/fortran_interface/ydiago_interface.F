@@ -335,6 +335,12 @@ module YDIAGO_interface
         !
         type(c_ptr), value :: D_mat
       end function Inverse_Dmat
+
+      ! Set gpu string for elpa
+      subroutine set_elpa_gpu_str(str) bind(C, name="set_elpa_gpu_str")
+        import :: c_char
+        character(kind=c_char), dimension(*) :: str
+      end subroutine set_elpa_gpu_str
   
     end interface
   

@@ -46,7 +46,7 @@ void set_elpa_gpu_str(char* str)
 #endif
 
 #else
-    strcpy(str, "");
+    strcpy(str, "not-supported");
 #endif
 }
 

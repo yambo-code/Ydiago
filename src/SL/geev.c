@@ -24,9 +24,8 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         Due to restriction from P?lahqr function, block size must be >= 6
 
     On output, when both Deig_vecsL and Deig_vecsR are requested,
-    the overlap of left and right eigenvectors i.e L^H @ R is stored
-    in DmatA.
-    In all othercase, DmatA is set to identity matrix
+    Note that the left and right eigenvectors are constructed such that 
+    the overlap matrix is identity
     */
 
     // do basic checks
@@ -160,23 +159,10 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     if (Deig_vecsL || Deig_vecsR)
     {
         // eigenvectors are required
-        if (Deig_vecsL)
-        {
-            Qmat = eig_vecsL->data;
-            // set the Qmat to I_n
-            error = set_identity(eig_vecsL);
-            if (error)
-            {
-                goto end_Geev1;
-            }
-
-            error = set_descriptor(eig_vecsL, descQ);
-            if (error)
-            {
-                goto end_Geev1;
-            }
-        }
-        else
+        // NM : In case both are requested only right eigenvectors 
+        // are computed and left are obtained by computing the inverse 
+        // of the right eigenvectors
+        if (Deig_vecsR)
         {
             Qmat = eig_vecsR->data;
             // set the Qmat to I_n
@@ -187,6 +173,22 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
             }
 
             error = set_descriptor(eig_vecsR, descQ);
+            if (error)
+            {
+                goto end_Geev1;
+            }
+        }
+        else 
+        {
+            Qmat = eig_vecsL->data;
+            // set the Qmat to I_n
+            error = set_identity(eig_vecsL);
+            if (error)
+            {
+                goto end_Geev1;
+            }
+
+            error = set_descriptor(eig_vecsL, descQ);
             if (error)
             {
                 goto end_Geev1;
@@ -232,6 +234,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     }
     else
     {
+        // dummy
         memcpy(descQ, desca, sizeof(desca[0]) * 9);
     }
 
@@ -312,12 +315,8 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     }
 
     // 3) compute the eigen vectors
-    char side = 'B';
-    if (!Deig_vecsL)
-    {
-        side = 'R';
-    }
-    else if (!Deig_vecsR)
+    char side = 'R';
+    if (!Deig_vecsR)
     {
         side = 'L';
     }
@@ -340,11 +339,6 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         {
             goto end_Geev1;
         }
-        // copy the Q matrix to Z
-        if (Qmat != vl)
-        {
-            memcpy(vl, Qmat, sizeof(*vl) * eig_vecsL->ldims[0] * eig_vecsL->ldims[1]);
-        }
     }
     if (Deig_vecsR)
     {
@@ -354,11 +348,6 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         if (error)
         {
             goto end_Geev1;
-        }
-        // copy the Q matrix to Z
-        if (Qmat != vr)
-        {
-            memcpy(vr, Qmat, sizeof(*vr) * eig_vecsR->ldims[0] * eig_vecsR->ldims[1]);
         }
     }
 
@@ -373,52 +362,39 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
                            matA->data, desca, vl, descvl, vr, descvr,
                            &mm_trevc, matA->gdims, trevc_work, trevc_rwork, &err_code);
 
-        if (!err_code)
+        if (!err_code && Deig_vecsR)
         {
-            // Normalize the left and right eigen vectors with euclidian norm
+            // Normalize the right eigen vectors with euclidian norm
             for (D_INT i = 0; i < neigs; ++i)
             {
                 D_float alpha = 0.0;
                 D_INT jx = i + 1;
-
-                if (Deig_vecsL)
+                // Compute the norm
+                SLvec_norm2(eig_vecsR->gdims, &alpha, eig_vecsR->data, &izero, &jx, descvr, &izero);
+                // Sanity check 
+                if (fabs(alpha) < 1e-8)
                 {
-
-                    SLvec_norm2(eig_vecsL->gdims, &alpha, eig_vecsL->data, &izero, &jx, descvl, &izero);
-                    if (fabs(alpha) < 1e-8)
-                    {
-                        continue;
-                    }
-                    D_Cmplx beta = 1.0 / alpha;
-                    SL_FunCmplx(scal)(eig_vecsL->gdims, &beta, eig_vecsL->data, &izero, &jx, descvl, &izero);
+                    // This is an error 
+                    continue;
                 }
-
-                if (Deig_vecsR)
-                {
-                    SLvec_norm2(eig_vecsR->gdims, &alpha, eig_vecsR->data, &izero, &jx, descvr, &izero);
-                    if (fabs(alpha) < 1e-8)
-                    {
-                        continue;
-                    }
-                    D_Cmplx beta = 1.0 / alpha;
-                    SL_FunCmplx(scal)(eig_vecsR->gdims, &beta, eig_vecsR->data, &izero, &jx, descvr, &izero);
-                }
+                D_Cmplx beta = 1.0 / alpha;
+                // scale
+                SL_FunCmplx(scal)(eig_vecsR->gdims, &beta, eig_vecsR->data, &izero, &jx, descvr, &izero);
             }
-            // compute the overlap marix and store in DmatA
-            if (Deig_vecsL && Deig_vecsR)
+            // compute the left eigenvectors from right Left = (Right)^-H 
+            // NM : We compute the left evs from inverse of right evs instead of computing 
+            // from p?trevc to avoid non-identity 
+            // overlap.
+            if (Deig_vecsL)
             {
-                // left^H @ right -> DmatA
-                D_Cmplx c_one = 1.0;
-                D_Cmplx c_zero = 0.0;
-                SL_FunCmplx(gemm)("C", "N", eig_vecsL->gdims + 1, eig_vecsR->gdims + 1,
-                                  eig_vecsL->gdims, &c_one, eig_vecsL->data, &izero,
-                                  &izero, descvl, eig_vecsR->data, &izero,
-                                  &izero, descvr, &c_zero, matA->data, &izero, &izero, desca);
-            }
-            else
-            {
-                // set DmatA to identity
-                error = set_identity(DmatA);
+                // Note, unlike Right eigenvectors, left eigenvectors are not normalized
+                D_Cmplx beta = 0.0;
+                D_Cmplx alpha_one = 1.0;
+                // store L = R^H 
+                SL_FunCmplx(geadd)("C", eig_vecsR->gdims, eig_vecsR->gdims + 1, &alpha_one, 
+                                    vr, &izero, &izero, descvr, &beta, vl, &izero, &izero, descvl );
+                // Compute inverse of R^H
+                error = Inverse_Dmat(Deig_vecsL);
             }
         }
     }
