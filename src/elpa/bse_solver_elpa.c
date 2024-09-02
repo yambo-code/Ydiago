@@ -6,7 +6,10 @@
 
 #ifdef WITH_ELPA
 
-void Elpa_FunFloat(skew_sym_eigenvectors)(elpa_t handle, float* a, float* ev, float* q, int* error);
+static void elpa_skew_eig_vecs_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, D_float* ev,
+                                   D_LL_INT ev_nele, D_float* q, D_LL_INT q_nele, int* error);
+
+static void elpa_cholesky_real_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, int* error);
 
 Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
                         const D_INT elpa_solver,
@@ -46,6 +49,7 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
     */
 
     int err_code = 0;
+    bool gpu_calc = isGPUpresent() && gpu_type;
 
     Err_INT error = check_mat_diago(D_mat, true);
     if (error)
@@ -121,9 +125,14 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
         // 2) Perform the Cholesky factorization for real symmetric matrix
         if (matA->cpu_engage)
         {
-            // FIX ME : Port it to GPU.
-            Elpa_FunFloat(cholesky)(einfo.handle, Ham_r, &err_code);
-
+            if (!gpu_calc)
+            {
+                elpa_cholesky(einfo.handle, Ham_r, &err_code);
+            }
+            else
+            {
+                elpa_cholesky_real_gpu(einfo.handle, Ham_r, nloc_elem, &err_code);
+            }
             //  Elpa gives upper triangular. So transpose
             D_float alpha_tmp = 1.0;
             D_float beta_tmp = 0.0;
@@ -179,10 +188,16 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
 
         if (evals_tmp && evecs_tmp)
         {
-            // Port it to GPU
-            //(elpa_skew_eigenvectors_a_h_a_f)
-            Elpa_FunFloat(skew_sym_eigenvectors)(einfo.handle, Wmat, evals_tmp, evecs_tmp, &err_code);
-            if (err_code != ELPA_OK)
+            if (!gpu_calc)
+            {
+                elpa_skew_eigenvectors(einfo.handle, Wmat, evals_tmp, evecs_tmp, &err_code);
+            }
+            else
+            {
+                elpa_skew_eig_vecs_gpu(einfo.handle, Wmat, nloc_elem, evals_tmp,
+                                       matA->gdims[0], evecs_tmp, 2 * nloc_elem, &err_code);
+            }
+            if (err_code)
             {
                 error = ELPA_SKEW_SYMM_DIAGO_ERROR;
             }
@@ -322,24 +337,85 @@ end_BSE_Solver0:;
     return error;
 }
 
-void Elpa_FunFloat(skew_sym_eigenvectors)(elpa_t handle, float* a, float* ev, float* q, int* error)
+static void elpa_cholesky_real_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, int* error)
 {
-#if ELPA_WITH_NVIDIA_GPU_VERSION == 1 || ELPA_WITH_AMD_GPU_VERSION == 1
-    if (is_device_ptr(a))
+    *error = 0;
+    if (!isGPUpresent())
     {
-#ifdef WITH_DOUBLE
-        elpa_skew_eigenvectors_d_ptr_d(handle, a, ev, q, error);
-#else
-        elpa_skew_eigenvectors_d_ptr_f(handle, a, ev, q, error);
-#endif // with_double
+        return;
+    }
+#ifdef WITH_GPU
+    D_float* a_dev = gpu_malloc((a_nele + 1) * sizeof(*a_dev));
+
+    if (a_dev)
+    {
+        *error = gpu_memcpy(a_dev, a, a_nele * sizeof(*a_dev), Copy2GPU);
+    }
+
+    if (!*error && a_dev)
+    {
+        Elpa_FunFloat(cholesky)(handle, a_dev, error);
+        if (!*error)
+        {
+            // Copy back to cpu
+            *error = gpu_memcpy(a, a_dev, a_nele * sizeof(*a_dev), Copy2CPU);
+        }
     }
     else
     {
-        elpa_skew_eigenvectors(handle, a, ev, q, error);
+        *error = 1;
     }
+
+    *error = gpu_free(a_dev) || *error;
 #else
-    elpa_skew_eigenvectors(handle, a, ev, q, error);
-#endif // GPU_VERSION
+    return;
+#endif
+}
+
+static void elpa_skew_eig_vecs_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, D_float* ev,
+                                   D_LL_INT ev_nele, D_float* q, D_LL_INT q_nele, int* error)
+{
+    *error = 0;
+    if (!isGPUpresent())
+    {
+        return;
+    }
+#ifdef WITH_GPU
+    D_float* a_dev = gpu_malloc((a_nele + 1) * sizeof(*a_dev));
+    D_float* ev_dev = gpu_malloc((ev_nele + 1) * sizeof(*ev_dev));
+    D_float* q_dev = gpu_malloc((q_nele + 1) * sizeof(*q_dev));
+
+    if (a_dev)
+    {
+        *error = gpu_memcpy(a_dev, a, a_nele * sizeof(*a_dev), Copy2GPU);
+    }
+
+    if (!*error && a_dev && ev_dev && q_dev)
+    {
+#ifdef WITH_DOUBLE
+        elpa_skew_eigenvectors_d_ptr_d(handle, a_dev, ev_dev, q_dev, error);
+#else
+        elpa_skew_eigenvectors_d_ptr_f(handle, a_dev, ev_dev, q_dev, error);
+#endif // with_double
+       //
+        if (!*error)
+        {
+            // Copy back to cpu
+            *error = gpu_memcpy(ev, ev_dev, ev_nele * sizeof(*ev), Copy2CPU);
+            *error = gpu_memcpy(q, q_dev, q_nele * sizeof(*q), Copy2CPU) || *error;
+        }
+    }
+    else
+    {
+        *error = 1;
+    }
+
+    *error = gpu_free(a_dev) || *error;
+    *error = gpu_free(ev_dev) || *error;
+    *error = gpu_free(q_dev) || *error;
+#else
+    return;
+#endif
 }
 
 #endif // WITH_ELPA

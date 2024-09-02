@@ -24,7 +24,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         Due to restriction from P?lahqr function, block size must be >= 6
 
     On output, when both Deig_vecsL and Deig_vecsR are requested,
-    Note that the left and right eigenvectors are constructed such that 
+    Note that the left and right eigenvectors are constructed such that
     the overlap matrix is identity
     */
 
@@ -159,8 +159,8 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     if (Deig_vecsL || Deig_vecsR)
     {
         // eigenvectors are required
-        // NM : In case both are requested only right eigenvectors 
-        // are computed and left are obtained by computing the inverse 
+        // NM : In case both are requested only right eigenvectors
+        // are computed and left are obtained by computing the inverse
         // of the right eigenvectors
         if (Deig_vecsR)
         {
@@ -178,7 +178,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
                 goto end_Geev1;
             }
         }
-        else 
+        else
         {
             Qmat = eig_vecsL->data;
             // set the Qmat to I_n
@@ -371,28 +371,28 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
                 D_INT jx = i + 1;
                 // Compute the norm
                 SLvec_norm2(eig_vecsR->gdims, &alpha, eig_vecsR->data, &izero, &jx, descvr, &izero);
-                // Sanity check 
+                // Sanity check
                 if (fabs(alpha) < 1e-8)
                 {
-                    // This is an error 
+                    // This is an error
                     continue;
                 }
                 D_Cmplx beta = 1.0 / alpha;
                 // scale
                 SL_FunCmplx(scal)(eig_vecsR->gdims, &beta, eig_vecsR->data, &izero, &jx, descvr, &izero);
             }
-            // compute the left eigenvectors from right Left = (Right)^-H 
-            // NM : We compute the left evs from inverse of right evs instead of computing 
-            // from p?trevc to avoid non-identity 
+            // compute the left eigenvectors from right Left = (Right)^-H
+            // NM : We compute the left evs from inverse of right evs instead of computing
+            // from p?trevc to avoid non-identity
             // overlap.
             if (Deig_vecsL)
             {
                 // Note, unlike Right eigenvectors, left eigenvectors are not normalized
                 D_Cmplx beta = 0.0;
                 D_Cmplx alpha_one = 1.0;
-                // store L = R^H 
-                SL_FunCmplx(geadd)("C", eig_vecsR->gdims, eig_vecsR->gdims + 1, &alpha_one, 
-                                    vr, &izero, &izero, descvr, &beta, vl, &izero, &izero, descvl );
+                // store L = R^H
+                SL_FunCmplx(geadd)("C", eig_vecsR->gdims, eig_vecsR->gdims + 1, &alpha_one,
+                                   vr, &izero, &izero, descvr, &beta, vl, &izero, &izero, descvl);
                 // Compute inverse of R^H
                 error = Inverse_Dmat(Deig_vecsL);
             }
