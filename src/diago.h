@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include "common/error.h"
 
-#define SUPPORTED_ELPA_VERSION 20231705 
+#define SUPPORTED_ELPA_VERSION 20231705
 //====== Requries ELPA vesrion >= ELPA 2023.11.001
 
 #define SL_WORK_QUERY_FAC 1.0001

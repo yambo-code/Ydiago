@@ -223,7 +223,7 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
                 D_INT lwork = MAX(matA->gdims[0], (matA->ldims[0] * (matA->block_size[1] + matA->ldims[1])));
                 // NM : liwork is intentionally kept more than what is given in sl to avoid buffer overflow (sl requirment is wrong!)
                 // From the p?lasrt routine, we need at lease 2*N
-                D_INT liwork = 2*matA->gdims[0] + 2 * matA->block_size[1] + 2 * (MAX(matA->pgrid[0], matA->pgrid[1]));
+                D_INT liwork = 2 * matA->gdims[0] + 2 * matA->block_size[1] + 2 * (MAX(matA->pgrid[0], matA->pgrid[1]));
 
                 D_float* work = calloc(lwork, sizeof(*work));
                 D_INT* iwork = calloc(liwork, sizeof(*iwork));

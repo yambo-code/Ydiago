@@ -36,7 +36,7 @@ $(TARGET): $(OBJS) $(FC_OBJS) $(F90_SRCS) make.inc
 
 %.f90: %.F $(FC_SRCS) 
 	cp $< $(addsuffix .c,$^)
-	$(CC) -E -P $(CFLAGS) $(addsuffix .c,$^) -o $@
+	$(CPP) -E -P $(CFLAGS) $(addsuffix .c,$^) > $@
 	rm $(addsuffix .c,$^)
 
 PHONY += clean

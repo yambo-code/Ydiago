@@ -1,6 +1,7 @@
 CC                  :=  mpicc
 FC                  :=  mpifort
 AR                  :=  ar
+CPP                 :=  mpicc
 
 CFLAGS       	    :=  -g -fsanitize=address -fno-omit-frame-pointer 
 YAMBO_FLAGS   	    := #-D_ELPA -D_DOUBLE -D_CUDA -D_OPENMP
