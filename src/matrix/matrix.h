@@ -1,13 +1,8 @@
 #pragma once
-
-#include <stdbool.h>
-#include <string.h>
 #include "../diago.h"
-#include "../SL/scalapack_header.h"
 #include <mpi.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <stdio.h>
+#include "../common/error.h"
+#include <stdbool.h>
 
 void* BLACScxtInit(char layout, MPI_Comm comm, D_INT ProcX, D_INT ProcY);
 void* BLACScxtInit_Fortran(char layout, D_INT comm, D_INT ProcX, D_INT ProcY);

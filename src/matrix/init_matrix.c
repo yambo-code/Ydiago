@@ -4,6 +4,13 @@
 //
 //
 #include "matrix.h"
+#include "../SL/scalapack_header.h"
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include <stdlib.h>
+#include <ctype.h>
 
 void* BLACScxtInit(char layout, MPI_Comm comm, D_INT ProcX, D_INT ProcY)
 {

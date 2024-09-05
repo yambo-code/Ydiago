@@ -1,13 +1,28 @@
 #pragma once
 
-#include "../matrix/matrix.h"
-#include "../diago.h"
-#include "../solvers.h"
-#include "../common/gpu_helpers.h"
 #ifdef WITH_ELPA
+#include <mpi.h>
+#include "../diago.h"
+#include <stdbool.h>
+#include <elpa/elpa.h>
+
+
+#ifdef WITH_DOUBLE
+#define Elpa_FunCmplx(FUN_NAME) ElpaCmplx_HIDDEN(FUN_NAME)
+#define ElpaCmplx_HIDDEN(FUN_NAME) elpa_##FUN_NAME##_double_complex
+
+#define Elpa_FunFloat(FUN_NAME) ElpaFloat_HIDDEN(FUN_NAME)
+#define ElpaFloat_HIDDEN(FUN_NAME) elpa_##FUN_NAME##_double
+#else
+#define Elpa_FunCmplx(FUN_NAME) ElpaCmplx_HIDDEN(FUN_NAME)
+#define ElpaCmplx_HIDDEN(FUN_NAME) elpa_##FUN_NAME##_float_complex
+
+#define Elpa_FunFloat(FUN_NAME) ElpaFloat_HIDDEN(FUN_NAME)
+#define ElpaFloat_HIDDEN(FUN_NAME) elpa_##FUN_NAME##_float
+#endif
+
 
 #define HAVE_SKEWSYMMETRIC // This is for elpa and must be before elpa/elpa.h
-#include <elpa/elpa.h>
 
 struct ELPAinfo
 {

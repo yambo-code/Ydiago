@@ -1,4 +1,8 @@
 #include "matrix.h"
+#include "../SL/scalapack_header.h"
+#include "../diago.h"
+#include "../common/error.h"
+#include "../common/dtypes.h"
 
 Err_INT set_identity(void* DmatA)
 {

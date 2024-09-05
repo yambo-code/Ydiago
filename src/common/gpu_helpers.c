@@ -6,6 +6,8 @@
 
 #include "gpu_helpers.h"
 #include <string.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 #ifdef WITH_GPU
 

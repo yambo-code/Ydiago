@@ -3,6 +3,14 @@
 #include "elpa_wrap.h"
 
 #ifdef WITH_ELPA
+//
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include <elpa/elpa.h>
+#include "../matrix/matrix.h"
+#include "../common/min_max.h"
+#include "../common/dtypes.h"
 
 Err_INT start_ELPA(struct ELPAinfo* info, MPI_Comm comm, const bool cpu_engage)
 {
@@ -80,7 +88,7 @@ Err_INT set_ELPA(void* D_mat, const D_INT neigs, const D_INT elpa_solver,
         return ELPA_SETUP_ERROR;
     }
 
-    if (neigs > 0)
+    if (neigs >= 0)
     {
         D_INT neigs_tmp = MIN(neigs, mat->gdims[0]);
         if (!neigs)

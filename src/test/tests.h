@@ -1,10 +1,19 @@
 #pragma once
 
 #include "../diago.h"
+#include "../common/dtypes.h"
+#include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <mpi.h>
 #include "../solvers.h"
+#include "../matrix/matrix.h"
+#include "../SL/scalapack_header.h"
+#include "../elpa/elpa_wrap.h"
+#include <ctype.h>
+#include <complex.h>
+#include <math.h>
 
 #define check_error(a)                               \
     {                                                \

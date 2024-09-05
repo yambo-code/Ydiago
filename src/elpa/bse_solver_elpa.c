@@ -1,10 +1,20 @@
 // Contain Special non-TDA BSE Solver
-#include "../solvers.h"
-#include "../matrix/matrix.h"
-#include "../SL/scalapack_header.h"
-#include "elpa_wrap.h"
-
 #ifdef WITH_ELPA
+
+#include "elpa_wrap.h"
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include <elpa/elpa.h>
+#include "../matrix/matrix.h"
+#include "../common/min_max.h"
+#include "../common/gpu_helpers.h"
+#include <stdlib.h>
+#include "../solvers.h"
+#include "../SL/scalapack_header.h"
+#include <math.h>
+#include <complex.h>
 
 static void elpa_skew_eig_vecs_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, D_float* ev,
                                    D_LL_INT ev_nele, D_float* q, D_LL_INT q_nele, int* error);
@@ -223,7 +233,7 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
                 D_INT lwork = MAX(matA->gdims[0], (matA->ldims[0] * (matA->block_size[1] + matA->ldims[1])));
                 // NM : liwork is intentionally kept more than what is given in sl to avoid buffer overflow (sl requirment is wrong!)
                 // From the p?lasrt routine, we need at lease 2*N
-                D_INT liwork = 2 * matA->gdims[0] + 2 * matA->block_size[1] + 2 * (MAX(matA->pgrid[0], matA->pgrid[1]));
+                D_INT liwork = 3 * matA->gdims[0] + 2 * matA->block_size[1] + 2 * (MAX(matA->pgrid[0], matA->pgrid[1]));
 
                 D_float* work = calloc(lwork, sizeof(*work));
                 D_INT* iwork = calloc(liwork, sizeof(*iwork));

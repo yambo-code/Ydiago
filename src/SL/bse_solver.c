@@ -2,7 +2,16 @@
 #include "../solvers.h"
 #include "../matrix/matrix.h"
 #include "scalapack_header.h"
+#include <ctype.h>
+#include <string.h>
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include "../common/min_max.h"
+#include <stdlib.h>
 #include <math.h>
+#include <complex.h>
 
 Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
                    D_float* eigval_range, D_Cmplx* eig_vals,

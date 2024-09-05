@@ -1,4 +1,12 @@
 #include "matrix.h"
+#include "../SL/scalapack_header.h"
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include <stdlib.h>
+#include <math.h>
+#include <complex.h>
 
 Err_INT Construct_BSE_RealHam(void* DmatA, D_float* matA_out)
 {

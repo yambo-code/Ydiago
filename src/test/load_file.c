@@ -3,6 +3,7 @@
 #include <complex.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 static D_LL_INT get_doubles(char* str, D_float* out);
 static Err_INT read_complex_from_file(const char* filename, D_Cmplx* out_arr, D_INT nmax);

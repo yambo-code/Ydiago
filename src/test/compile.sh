@@ -35,7 +35,7 @@ $MPIRUN -n 6 ./test
 #
 mpifort -c -g -fbounds-check -fbacktrace  -pedantic -Wall -std=f2003 test_herm_fortran.f90 -I.. 
 
-mpicc $OPS -pedantic -Wall -std=f2003 test_herm_fortran.o -I.. -L.. -ldiago -L/opt/homebrew/lib -lscalapack -llapack -lblas -L/opt/homebrew/Cellar/gcc/14.1.0_1/lib/gcc/current -lgfortran -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi -o test
+mpicc $OPS -pedantic -Wall -std=f2003 test_herm_fortran.o -I.. -L.. -ldiago -L/opt/homebrew/lib -lscalapack -llapack -lblas -L/opt/homebrew/Cellar/gcc/14.2.0/lib/gcc/current/ -lgfortran -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi -o test
 
 $MPIRUN -n 8 ./test
 $MPIRUN -n 7 ./test

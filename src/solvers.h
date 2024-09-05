@@ -1,10 +1,7 @@
 #pragma once
 
-#include "SL/scalapack_header.h"
 #include "diago.h"
-#include <stdio.h>
-#include "matrix/matrix.h"
-
+#include "common/error.h"
 // scalapack solvers
 // Hermitian solver
 Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
@@ -31,10 +28,3 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
                         char* gpu_type, const D_INT nthreads);
 #endif
 
-#if !defined(MIN)
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#endif
-
-#if !defined(MAX)
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif

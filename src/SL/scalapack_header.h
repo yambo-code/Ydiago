@@ -2,6 +2,23 @@
 #include <mpi.h>
 #include "../diago.h"
 
+
+
+#ifdef WITH_DOUBLE
+#define SL_FunCmplx(FUN_NAME) scalapack_fun_HIDDEN_Cmplx(FUN_NAME)
+#define scalapack_fun_HIDDEN_Cmplx(FUN_NAME) pz##FUN_NAME##_
+
+#define SL_FunFloat(FUN_NAME) scalapack_fun_HIDDEN_float(FUN_NAME)
+#define scalapack_fun_HIDDEN_float(FUN_NAME) pd##FUN_NAME##_
+#else
+#define SL_FunCmplx(FUN_NAME) scalapack_fun_HIDDEN_Cmplx(FUN_NAME)
+#define scalapack_fun_HIDDEN_Cmplx(FUN_NAME) pc##FUN_NAME##_
+
+#define SL_FunFloat(FUN_NAME) scalapack_fun_HIDDEN_float(FUN_NAME)
+#define scalapack_fun_HIDDEN_float(FUN_NAME) ps##FUN_NAME##_
+#endif
+
+
 // pblacs routines
 void Cblacs_pinfo(D_INT*, D_INT*);
 void Cblacs_get(D_INT, D_INT, D_INT*);

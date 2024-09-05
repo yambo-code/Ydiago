@@ -1,4 +1,8 @@
 #include "matrix.h"
+#include "../diago.h"
+#include "../common/error.h"
+#include "../common/dtypes.h"
+
 
 Err_INT set_zero(void* DmatA)
 {

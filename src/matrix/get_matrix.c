@@ -2,6 +2,13 @@
 // global distribution matrix
 //
 #include "matrix.h"
+#include "../diago.h"
+#include "../SL/scalapack_header.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include <stdlib.h>
+#include <string.h>
 
 struct GetElement
 {

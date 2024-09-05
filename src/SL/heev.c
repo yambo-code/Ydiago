@@ -5,6 +5,14 @@
 #include "scalapack_header.h"
 #include <ctype.h>
 #include <string.h>
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include "../common/min_max.h"
+#include <stdlib.h>
+#include <math.h>
+#include <complex.h>
 
 /*=== P?heevR ===*/
 Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,

@@ -1,8 +1,17 @@
 // This file contains Generalized eigen solver
-
 #include "../solvers.h"
 #include "../matrix/matrix.h"
 #include "scalapack_header.h"
+#include <ctype.h>
+#include <string.h>
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include "../common/min_max.h"
+#include <stdlib.h>
+#include <math.h>
+#include <complex.h>
 
 Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
              void* Deig_vecsL, void* Deig_vecsR)

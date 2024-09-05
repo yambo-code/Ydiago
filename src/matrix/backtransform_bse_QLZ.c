@@ -1,4 +1,13 @@
 #include "matrix.h"
+#include "../SL/scalapack_header.h"
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <complex.h>
 
 Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu, void* einfo)
 {

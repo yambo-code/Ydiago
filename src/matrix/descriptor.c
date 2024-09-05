@@ -1,4 +1,8 @@
 #include "matrix.h"
+#include "../diago.h"
+#include "../common/error.h"
+#include "../common/dtypes.h"
+
 
 void descinit_(D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*);
 

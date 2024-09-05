@@ -1,6 +1,12 @@
-#include "matrix.h"
 // builds the skew symmetric matrix required when diagonalizing non-TDA bse
 // hamiliton.
+#include "matrix.h"
+#include "../SL/scalapack_header.h"
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include <stdlib.h>
 
 Err_INT Omega_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L)
 {

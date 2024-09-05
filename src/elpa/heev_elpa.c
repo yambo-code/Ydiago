@@ -1,8 +1,19 @@
-#include "elpa_wrap.h"
-#include <stdlib.h>
 #ifdef WITH_ELPA
+//
+#include "elpa_wrap.h"
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include <elpa/elpa.h>
+#include "../matrix/matrix.h"
+#include "../common/min_max.h"
+#include "../common/gpu_helpers.h"
+#include <stdlib.h>
+#include <math.h>
+#include <complex.h>
+#include "../solvers.h"
 
-// FIX MEEEE USe type specific elpa interface
 
 static void elpa_eig_vals_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele, D_float* ev,
                               D_LL_INT ev_nele, int* error);

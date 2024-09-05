@@ -4,6 +4,13 @@
 //
 //
 #include "matrix.h"
+#include "../diago.h"
+#include <mpi.h>
+#include "../common/error.h"
+#include "../common/dtypes.h"
+#include <stdlib.h>
+#include "../SL/scalapack_header.h"
+#include <string.h>
 
 struct SetElement
 {
