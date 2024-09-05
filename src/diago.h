@@ -29,7 +29,7 @@
 #endif
 
 #if defined(WITH_CUDA) || defined(WITH_HIP) || defined(WITH_INTEL_GPU)
-#ifndef WITH_GPU 
+#ifndef WITH_GPU
 #define WITH_GPU
 #endif
 #endif
@@ -65,5 +65,3 @@ typedef int D_INT;
    the scalapack library uses different type for int.
 */
 #define D_INT_MPI_TYPE MPI_INT // this this type according to D_INT
-
-

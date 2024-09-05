@@ -15,7 +15,6 @@
 #include <complex.h>
 #include "../solvers.h"
 
-
 static void elpa_eig_vals_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele, D_float* ev,
                               D_LL_INT ev_nele, int* error);
 

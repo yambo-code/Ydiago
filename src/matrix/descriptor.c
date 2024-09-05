@@ -3,7 +3,6 @@
 #include "../common/error.h"
 #include "../common/dtypes.h"
 
-
 void descinit_(D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*);
 
 Err_INT set_descriptor(void* D_mat, D_INT* desc)

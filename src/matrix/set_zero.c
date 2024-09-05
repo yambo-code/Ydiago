@@ -3,7 +3,6 @@
 #include "../common/error.h"
 #include "../common/dtypes.h"
 
-
 Err_INT set_zero(void* DmatA)
 {
     // set DmatA to identity matrix

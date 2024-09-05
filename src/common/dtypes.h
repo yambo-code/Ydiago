@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include "../diago.h"
 #include <mpi.h>
 #include <stdbool.h>
@@ -33,5 +33,3 @@ struct MPIcxt
     MPI_Comm comm; // comm
     D_INT ctxt; // context
 };
-
-

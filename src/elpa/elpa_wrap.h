@@ -1,11 +1,13 @@
 #pragma once
 #include "../diago.h"
 
+#define HAVE_SKEWSYMMETRIC // This is for elpa and must be before elpa/elpa.h
+//
 #ifdef WITH_ELPA
 #include <mpi.h>
 #include <stdbool.h>
 #include <elpa/elpa.h>
-
+#include "../common/error.h"
 
 #ifdef WITH_DOUBLE
 #define Elpa_FunCmplx(FUN_NAME) ElpaCmplx_HIDDEN(FUN_NAME)
@@ -20,9 +22,6 @@
 #define Elpa_FunFloat(FUN_NAME) ElpaFloat_HIDDEN(FUN_NAME)
 #define ElpaFloat_HIDDEN(FUN_NAME) elpa_##FUN_NAME##_float
 #endif
-
-
-#define HAVE_SKEWSYMMETRIC // This is for elpa and must be before elpa/elpa.h
 
 struct ELPAinfo
 {

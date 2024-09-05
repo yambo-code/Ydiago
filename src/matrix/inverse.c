@@ -10,7 +10,6 @@
 #include <math.h>
 #include <complex.h>
 
-
 Err_INT Inverse_Dmat(void* Dmat)
 {
     /*
