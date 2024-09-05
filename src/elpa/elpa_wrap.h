@@ -1,8 +1,8 @@
 #pragma once
+#include "../diago.h"
 
 #ifdef WITH_ELPA
 #include <mpi.h>
-#include "../diago.h"
 #include <stdbool.h>
 #include <elpa/elpa.h>
 

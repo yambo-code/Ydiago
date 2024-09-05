@@ -1,10 +1,10 @@
 /* ================== ELPA Helper functions ======================*/
 
 #include "elpa_wrap.h"
+#include "../diago.h"
 
 #ifdef WITH_ELPA
 //
-#include "../diago.h"
 #include <mpi.h>
 #include "../common/error.h"
 #include <elpa/elpa.h>

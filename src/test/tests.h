@@ -10,7 +10,6 @@
 #include "../solvers.h"
 #include "../matrix/matrix.h"
 #include "../SL/scalapack_header.h"
-#include "../elpa/elpa_wrap.h"
 #include <ctype.h>
 #include <complex.h>
 #include <math.h>

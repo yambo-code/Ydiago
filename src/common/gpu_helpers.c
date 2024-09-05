@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include "../diago.h"
 
 #ifdef WITH_GPU
 

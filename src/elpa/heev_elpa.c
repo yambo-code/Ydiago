@@ -1,7 +1,8 @@
+#include "../diago.h"
+
 #ifdef WITH_ELPA
 //
 #include "elpa_wrap.h"
-#include "../diago.h"
 #include <mpi.h>
 #include "../common/error.h"
 #include "../common/dtypes.h"
