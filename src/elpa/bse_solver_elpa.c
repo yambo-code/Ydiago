@@ -213,68 +213,12 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
             }
             else
             {
-                // the first eigen value is the least one i.e with maximum absoulte value
-                D_float max_eig_value = fabs(evals_tmp[0]);
                 for (D_LL_INT i = 0; i < neigs; ++i)
                 {
                     // -ve sign because we diagonalized -W instead of W
-                    evals_tmp[i] = -evals_tmp[i];
-                    eig_vals[i] = evals_tmp[i];
-                }
-                for (D_LL_INT i = neigs; i < matA->gdims[0]; ++i)
-                {
-                    // fill the rest with are dummy values in accending order.
-                    evals_tmp[i] = max_eig_value + i + 1.0;
+                    eig_vals[i] = -evals_tmp[i];
                 }
                 // The skew symmetric eigen vectors are arranged as [:,:eigs,:2].
-
-                D_INT error_sl = 0;
-
-                D_INT lwork = MAX(matA->gdims[0], (matA->ldims[0] * (matA->block_size[1] + matA->ldims[1])));
-                // NM : liwork is intentionally kept more than what is given in sl to avoid buffer overflow (sl requirment is wrong!)
-                // From the p?lasrt routine, we need at lease 2*N
-                D_INT liwork = 3 * matA->gdims[0] + 2 * matA->block_size[1] + 2 * (MAX(matA->pgrid[0], matA->pgrid[1]));
-
-                D_float* work = calloc(lwork, sizeof(*work));
-                D_INT* iwork = calloc(liwork, sizeof(*iwork));
-                if (work && iwork)
-                {
-                    // sort real
-                    SL_FunFloat(lasrt)("I", matA->gdims, evals_tmp, evecs_tmp,
-                                       &izero, &izero, desca, work,
-                                       &lwork, iwork, &liwork, &error_sl);
-
-                    for (D_LL_INT i = 0; i < neigs; ++i)
-                    {
-                        evals_tmp[i] = creal(eig_vals[i]);
-                    }
-
-                    if (error_sl)
-                    {
-                        error = SL_EIG_SORT_ERROR;
-                    }
-                    // sort imag
-                    SL_FunFloat(lasrt)("I", matA->gdims, evals_tmp, evecs_tmp + nloc_elem,
-                                       &izero, &izero, desca, work,
-                                       &lwork, iwork, &liwork, &error_sl);
-
-                    if (!error && error_sl)
-                    {
-                        error = SL_EIG_SORT_ERROR;
-                    }
-
-                    for (D_LL_INT i = 0; i < neigs; ++i)
-                    {
-                        eig_vals[i] = evals_tmp[i];
-                    }
-                }
-                else
-                {
-                    error = SL_WORK_SPACE_ERROR;
-                }
-                free(work);
-                free(iwork);
-
                 // Copy the eigen vectors to matA
                 for (D_LL_INT i = 0; i < nloc_elem; ++i)
                 {
