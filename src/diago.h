@@ -16,15 +16,15 @@
 #define WITH_DOUBLE
 #endif
 
-#ifdef _CUDA
+#if defined _CUDAF || defined _OPENACC
 #define WITH_CUDA
 #endif
 
-#ifdef _HIP
+#if defined _OPENMP_GPU && defined _HIP
 #define WITH_HIP
 #endif
 
-#if defined(_OPENMP_GPU) || defined(_MKLGPU)
+#if defined _OPENMP_GPU && defined _MKLGPU
 #define WITH_INTEL_GPU
 #endif
 
