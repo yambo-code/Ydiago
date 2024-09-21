@@ -2,6 +2,7 @@ include make.inc
 
 TARGET 		 :=  libdiago.a
 
+MAKEFLAGS += -r 
 #### make start here
 
 SUBDIR = matrix elpa SL common fortran_interface 
