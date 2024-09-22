@@ -12,12 +12,14 @@
 #include "../SL/scalapack_header.h"
 #include <string.h>
 
-
-#define MPI_Aint_diff_tmp(addr1, addr2) ((MPI_Aint) ((char *) (addr1) - (char *) (addr2)))
-// This is equvalent function of MPI_Aint_diff 
-// From MPI standard 3.1, there is MPI_Aint_diff. 
+#ifdef MPI_Aint_diff
+#define MPI_Aint_diff_tmp(addr1, addr2) MPI_Aint_diff(addr1, addr2)
+#else
+#define MPI_Aint_diff_tmp(addr1, addr2) ((MPI_Aint)((char*)(addr1) - (char*)(addr2)))
+#endif
+// This is equvalent function of MPI_Aint_diff
+// From MPI standard 3.1, there is MPI_Aint_diff.
 // this created simple for backward compatibility
-
 
 struct SetElement
 {
