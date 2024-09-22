@@ -12,6 +12,13 @@
 #include "../SL/scalapack_header.h"
 #include <string.h>
 
+
+#define MPI_Aint_diff_tmp(addr1, addr2) ((MPI_Aint) ((char *) (addr1) - (char *) (addr2)))
+// This is equvalent function of MPI_Aint_diff 
+// From MPI standard 3.1, there is MPI_Aint_diff. 
+// this created simple for backward compatibility
+
+
 struct SetElement
 {
     D_Cmplx value;
@@ -211,9 +218,9 @@ Err_INT ProcessSetQueue(void* D_mat)
         error = DIAGO_MPI_ERROR;
         goto error_set_queue_2;
     }
-    tmpdisps[0] = MPI_Aint_diff(tmpdisps[0], base_address);
-    tmpdisps[1] = MPI_Aint_diff(tmpdisps[1], base_address);
-    tmpdisps[2] = MPI_Aint_diff(tmpdisps[2], base_address);
+    tmpdisps[0] = MPI_Aint_diff_tmp(tmpdisps[0], base_address);
+    tmpdisps[1] = MPI_Aint_diff_tmp(tmpdisps[1], base_address);
+    tmpdisps[2] = MPI_Aint_diff_tmp(tmpdisps[2], base_address);
 
     mpi_error = MPI_Type_create_struct(3, tmp_lengths, tmpdisps, tmp_types, &MPI_SetElement);
     if (mpi_error != MPI_SUCCESS)
