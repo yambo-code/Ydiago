@@ -1,7 +1,11 @@
 #pragma once
 
+#if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
 #ifdef __STDC_NO_COMPLEX__
-#error Your compiler does not C99 complex numbers, Please use a supported compiler.
+#error Your compiler does not support C99 complex numbers, Please use a supported compiler.
+#endif
+#else
+#error Your compiler does not support C99 standard.
 #endif
 
 #define SUPPORTED_ELPA_VERSION 20231705
