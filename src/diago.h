@@ -13,19 +13,27 @@
 // This must be always > 1
 // ======= add yambo defs ======
 #ifdef _DOUBLE
+#ifndef WITH_DOUBLE
 #define WITH_DOUBLE
+#endif
 #endif
 
 #if defined _CUDAF || defined _OPENACC
+#ifndef WITH_CUDA
 #define WITH_CUDA
+#endif
 #endif
 
 #if defined _OPENMP_GPU && defined _HIP
+#ifndef WITH_HIP
 #define WITH_HIP
+#endif
 #endif
 
 #if defined _OPENMP_GPU && defined _MKLGPU
+#ifndef WITH_INTEL_GPU
 #define WITH_INTEL_GPU
+#endif
 #endif
 
 #if defined(WITH_CUDA) || defined(WITH_HIP) || defined(WITH_INTEL_GPU)
@@ -35,11 +43,15 @@
 #endif
 
 #ifdef _OPENMP
+#ifndef WITH_OPENMP
 #define WITH_OPENMP
+#endif
 #endif
 
 #ifdef _ELPA
+#ifndef WITH_ELPA
 #define WITH_ELPA
+#endif
 #endif
 
 #if defined(WITH_GPU) && !defined(WITH_ELPA)
