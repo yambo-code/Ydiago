@@ -3,19 +3,21 @@
 //
 //
 //
-#include "matrix.h"
-#include "../diago.h"
 #include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
 #include <stdlib.h>
-#include "../SL/scalapack_header.h"
 #include <string.h>
+
+#include "../SL/scalapack_header.h"
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../diago.h"
+#include "matrix.h"
 
 #ifdef MPI_Aint_diff
 #define MPI_Aint_diff_tmp(addr1, addr2) MPI_Aint_diff(addr1, addr2)
 #else
-#define MPI_Aint_diff_tmp(addr1, addr2) ((MPI_Aint)((char*)(addr1) - (char*)(addr2)))
+#define MPI_Aint_diff_tmp(addr1, addr2) \
+    ((MPI_Aint)((char*)(addr1) - (char*)(addr2)))
 #endif
 // This is equvalent function of MPI_Aint_diff
 // From MPI standard 3.1, there is MPI_Aint_diff.
@@ -24,14 +26,15 @@
 struct SetElement
 {
     D_Cmplx value;
-    D_INT i; // global row index
-    D_INT j; // global col index
+    D_INT i;  // global row index
+    D_INT j;  // global col index
 };
 
-static D_INT* Set_mapP2iD; // maps (iproc,jproc)->mpirank. used in Set_idxG2iD
+static D_INT* Set_mapP2iD;  // maps (iproc,jproc)->mpirank. used in Set_idxG2iD
 static int cmpSetElements(const void* a, const void* b);
 
-static inline D_INT Set_idxG2iD(const D_INT* setCmpPrms, const D_INT i, const D_INT j)
+static inline D_INT Set_idxG2iD(const D_INT* setCmpPrms, const D_INT i,
+                                const D_INT j)
 {
     // setCmpPrms is array[5]{cxt, BlkX, BlkY, NProcX, NProcY}
     D_INT prow = INDXG2P(i, setCmpPrms[1], 0, 0, setCmpPrms[3]);
@@ -43,11 +46,11 @@ Err_INT initiateSetQueue(void* D_mat, const D_LL_INT nelements)
 {
     if (!D_mat)
     {
-        return MATRIX_NOT_INIT; // error.
+        return MATRIX_NOT_INIT;  // error.
     }
     struct D_Matrix* mat = D_mat;
 
-    int mpi_error = MPI_Barrier(mat->comm); // make this a collective call
+    int mpi_error = MPI_Barrier(mat->comm);  // make this a collective call
     if (mpi_error != MPI_SUCCESS)
     {
         return DIAGO_MPI_ERROR;
@@ -55,7 +58,7 @@ Err_INT initiateSetQueue(void* D_mat, const D_LL_INT nelements)
 
     if (mat->SetQueuePtr)
     {
-        return QUEUE_ALREADY_INIT; // error. Queue already initated.
+        return QUEUE_ALREADY_INIT;  // error. Queue already initated.
     }
     mat->nSetQueueElements = nelements;
     mat->iset = 0;
@@ -74,7 +77,7 @@ Err_INT DMatSet(void* D_mat, const D_INT i, const D_INT j, const D_Cmplx value)
 {
     if (!D_mat)
     {
-        return MATRIX_NOT_INIT; // error.
+        return MATRIX_NOT_INIT;  // error.
     }
 
     struct D_Matrix* mat = D_mat;
@@ -87,11 +90,11 @@ Err_INT DMatSet(void* D_mat, const D_INT i, const D_INT j, const D_Cmplx value)
 
     if (!mat->SetQueuePtr)
     {
-        return QUEUE_NOT_INIT; // error not initated
+        return QUEUE_NOT_INIT;  // error not initated
     }
     if (mat->iset >= mat->nSetQueueElements)
     {
-        return QUEUE_LIMIT_REACHED; // error out of bounds
+        return QUEUE_LIMIT_REACHED;  // error out of bounds
     }
     struct SetElement* QueuePtr = mat->SetQueuePtr;
 
@@ -112,14 +115,14 @@ Err_INT ProcessSetQueue(void* D_mat)
 
     if (!D_mat)
     {
-        error = MATRIX_NOT_INIT; // error.
+        error = MATRIX_NOT_INIT;  // error.
         goto error_set_queue_0;
     }
     struct D_Matrix* mat = D_mat;
 
     if (!mat->SetQueuePtr)
     {
-        error = QUEUE_NOT_INIT; // error not initated
+        error = QUEUE_NOT_INIT;  // error not initated
         goto error_set_queue_1;
     }
 
@@ -127,15 +130,16 @@ Err_INT ProcessSetQueue(void* D_mat)
     Set_mapP2iD = mat->mapP2iD;
 
     // next we need to sort the SetQueue array based on the ranks
-    const D_INT cmpSetupEle[5] = { mat->blacs_ctxt, mat->block_size[0],
-                                   mat->block_size[1], mat->pgrid[0],
-                                   mat->pgrid[1] };
+    const D_INT cmpSetupEle[5] = {mat->blacs_ctxt, mat->block_size[0],
+                                  mat->block_size[1], mat->pgrid[0],
+                                  mat->pgrid[1]};
     if (mat->nSetQueueElements > 0)
     {
         // setup the comparison function
         cmpSetElements(NULL, cmpSetupEle);
         // Now sort
-        qsort(mat->SetQueuePtr, mat->nSetQueueElements, sizeof(struct SetElement), cmpSetElements);
+        qsort(mat->SetQueuePtr, mat->nSetQueueElements,
+              sizeof(struct SetElement), cmpSetElements);
     }
 
     // some MPI related stuff
@@ -150,7 +154,7 @@ Err_INT ProcessSetQueue(void* D_mat)
     int* counts_send = calloc(4 * TotalCommCpus, sizeof(*counts_send));
     if (!counts_send)
     {
-        error = BUF_ALLOC_FAILED; // error
+        error = BUF_ALLOC_FAILED;  // error
         goto error_set_queue_1;
     }
     int* displacements_send = counts_send + TotalCommCpus * 1;
@@ -168,7 +172,8 @@ Err_INT ProcessSetQueue(void* D_mat)
         D_INT tmp_rank = Set_idxG2iD(cmpSetupEle, setQueue[i].i, setQueue[i].j);
         ++counts_send[tmp_rank];
     }
-    mpi_error = MPI_Alltoall(counts_send, 1, MPI_INT, counts_recv, 1, MPI_INT, mat->comm);
+    mpi_error = MPI_Alltoall(counts_send, 1, MPI_INT, counts_recv, 1, MPI_INT,
+                             mat->comm);
     if (mpi_error != MPI_SUCCESS)
     {
         error = DIAGO_MPI_ERROR;
@@ -185,10 +190,11 @@ Err_INT ProcessSetQueue(void* D_mat)
         total_recv += counts_recv[i];
     }
 
-    MPI_Datatype MPI_SetElement; // MPI type for SetElement
+    MPI_Datatype MPI_SetElement;  // MPI type for SetElement
 
-    int tmp_lengths[3] = { 1, 1, 1 };
-    MPI_Datatype tmp_types[3] = { D_Cmplx_MPI_TYPE, D_INT_MPI_TYPE, D_INT_MPI_TYPE };
+    int tmp_lengths[3] = {1, 1, 1};
+    MPI_Datatype tmp_types[3] = {D_Cmplx_MPI_TYPE, D_INT_MPI_TYPE,
+                                 D_INT_MPI_TYPE};
     MPI_Aint tmpdisps[3];
     MPI_Aint base_address;
     struct SetElement tmp_dummy;
@@ -224,7 +230,8 @@ Err_INT ProcessSetQueue(void* D_mat)
     tmpdisps[1] = MPI_Aint_diff_tmp(tmpdisps[1], base_address);
     tmpdisps[2] = MPI_Aint_diff_tmp(tmpdisps[2], base_address);
 
-    mpi_error = MPI_Type_create_struct(3, tmp_lengths, tmpdisps, tmp_types, &MPI_SetElement);
+    mpi_error = MPI_Type_create_struct(3, tmp_lengths, tmpdisps, tmp_types,
+                                       &MPI_SetElement);
     if (mpi_error != MPI_SUCCESS)
     {
         error = DIAGO_MPI_ERROR;
@@ -245,10 +252,9 @@ Err_INT ProcessSetQueue(void* D_mat)
         goto error_set_queue_3;
     }
 
-    mpi_error = MPI_Alltoallv(mat->SetQueuePtr, counts_send,
-                              displacements_send, MPI_SetElement,
-                              recv_buf, counts_recv, displacements_recv,
-                              MPI_SetElement, mat->comm);
+    mpi_error = MPI_Alltoallv(mat->SetQueuePtr, counts_send, displacements_send,
+                              MPI_SetElement, recv_buf, counts_recv,
+                              displacements_recv, MPI_SetElement, mat->comm);
     if (mpi_error != MPI_SUCCESS)
     {
         error = DIAGO_MPI_ERROR;
@@ -257,9 +263,12 @@ Err_INT ProcessSetQueue(void* D_mat)
     // unpack the data and set it locally
     for (D_LL_INT i = 0; i < total_recv; ++i)
     {
-        D_INT loc_idx_row = INDXG2L(recv_buf[i].i, mat->block_size[0], mat->pids[0], 0, mat->pgrid[0]);
-        D_INT loc_idx_col = INDXG2L(recv_buf[i].j, mat->block_size[1], mat->pids[1], 0, mat->pgrid[1]);
-        mat->data[loc_idx_row * mat->lda[0] + loc_idx_col * mat->lda[1]] = recv_buf[i].value;
+        D_INT loc_idx_row = INDXG2L(recv_buf[i].i, mat->block_size[0],
+                                    mat->pids[0], 0, mat->pgrid[0]);
+        D_INT loc_idx_col = INDXG2L(recv_buf[i].j, mat->block_size[1],
+                                    mat->pids[1], 0, mat->pgrid[1]);
+        mat->data[loc_idx_row * mat->lda[0] + loc_idx_col * mat->lda[1]] =
+            recv_buf[i].value;
     }
 
 error_set_queue_4:
@@ -283,7 +292,8 @@ error_set_queue_0:
 }
 
 // Fortran interface
-Err_INT DMatSet_fortran(void* D_mat, const D_INT i, const D_INT j, const D_Cmplx value)
+Err_INT DMatSet_fortran(void* D_mat, const D_INT i, const D_INT j,
+                        const D_Cmplx value)
 {
     return DMatSet(D_mat, i - 1, j - 1, value);
 }

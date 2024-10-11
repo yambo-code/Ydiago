@@ -1,16 +1,17 @@
 /* ================== ELPA Helper functions ======================*/
 
-#include "elpa_wrap.h"
 #include "../diago.h"
+#include "elpa_wrap.h"
 
 #ifdef WITH_ELPA
 //
-#include <mpi.h>
-#include "../common/error.h"
 #include <elpa/elpa.h>
-#include "../matrix/matrix.h"
-#include "../common/min_max.h"
+#include <mpi.h>
+
 #include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../common/min_max.h"
+#include "../matrix/matrix.h"
 
 Err_INT start_ELPA(struct ELPAinfo* info, MPI_Comm comm, const bool cpu_engage)
 {
@@ -42,7 +43,7 @@ Err_INT start_ELPA(struct ELPAinfo* info, MPI_Comm comm, const bool cpu_engage)
     if (cpu_engage)
     {
         if (elpa_init(SUPPORTED_ELPA_VERSION) != ELPA_OK)
-        { // elpa version is not supported
+        {  // elpa version is not supported
             return ELPA_UNSUPPORTED_ERROR;
         }
 
@@ -59,7 +60,8 @@ Err_INT start_ELPA(struct ELPAinfo* info, MPI_Comm comm, const bool cpu_engage)
 }
 
 Err_INT set_ELPA(void* D_mat, const D_INT neigs, const D_INT elpa_solver,
-                 const char* gpu_type, const D_INT nthreads, struct ELPAinfo info)
+                 const char* gpu_type, const D_INT nthreads,
+                 struct ELPAinfo info)
 {
     /*
     Supported types for gputypes : "nvidia-gpu", "amd-gpu", "intel-gpu"
@@ -67,7 +69,7 @@ Err_INT set_ELPA(void* D_mat, const D_INT neigs, const D_INT elpa_solver,
     */
     if (!info.cpu_engage)
     {
-        return DIAGO_SUCCESS; // cpu does not participate
+        return DIAGO_SUCCESS;  // cpu does not participate
     }
 
     MPI_Comm elpa_comm = info.elpa_comm;
@@ -124,7 +126,8 @@ Err_INT set_ELPA(void* D_mat, const D_INT neigs, const D_INT elpa_solver,
         return ELPA_SETUP_ERROR;
     }
 
-    elpa_set_integer(handle, "mpi_comm_parent", MPI_Comm_c2f(elpa_comm), &error);
+    elpa_set_integer(handle, "mpi_comm_parent", MPI_Comm_c2f(elpa_comm),
+                     &error);
 
     if (error != ELPA_OK)
     {
@@ -230,7 +233,6 @@ Err_INT cleanup_ELPA(struct ELPAinfo* info)
 
     if (info->cpu_engage)
     {
-
         elpa_deallocate(info->handle, &error);
         if (error != ELPA_OK)
         {

@@ -64,4 +64,4 @@ typedef int D_INT;
 /* Warning: leave D_INT to int unless
    the scalapack library uses different type for int.
 */
-#define D_INT_MPI_TYPE MPI_INT // this this type according to D_INT
+#define D_INT_MPI_TYPE MPI_INT  // this this type according to D_INT

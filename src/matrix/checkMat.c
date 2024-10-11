@@ -1,8 +1,8 @@
 // Checks matrices are good to go
-#include "matrix.h"
-#include "../diago.h"
-#include "../common/error.h"
 #include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../diago.h"
+#include "matrix.h"
 
 Err_INT check_mat_diago(void* D_mat, bool even_check)
 {
@@ -15,7 +15,7 @@ Err_INT check_mat_diago(void* D_mat, bool even_check)
 
     if (!matA->cpu_engage)
     {
-        return DIAGO_SUCCESS; // these cpus donot participate
+        return DIAGO_SUCCESS;  // these cpus donot participate
     }
 
     if (matA->gdims[0] != matA->gdims[1])

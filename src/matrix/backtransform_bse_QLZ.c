@@ -1,15 +1,17 @@
-#include "matrix.h"
-#include "../SL/scalapack_header.h"
-#include "../diago.h"
+#include <complex.h>
+#include <math.h>
 #include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <complex.h>
 
-Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu, void* einfo)
+#include "../SL/scalapack_header.h"
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../diago.h"
+#include "matrix.h"
+
+Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig,
+                  char* gpu, void* einfo)
 {
     /*
     For now: this function (GEMM operation) is  not gpu ported
@@ -18,8 +20,8 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu
     where Q = [[I_n  -i*I_n], [I_n  i*I_n]]
 
     Z on input contains eigen vectors
-    on output, Z gets replaced with back transformed eigen vectors (not normalized)
-    DmatA and Lmat will be destroyed
+    on output, Z gets replaced with back transformed eigen vectors (not
+    normalized) DmatA and Lmat will be destroyed
 
     GPU and einfo (elpainfo) are not used.
 
@@ -42,7 +44,7 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu
     struct D_Matrix* matZ = DmatZ;
 
     if (matA->cpu_engage && !Lmat)
-    { // error
+    {  // error
         error = ERR_NULL_PTR_BUFFER;
         goto err_bt_0;
     }
@@ -102,9 +104,8 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu
         // set real part
 
         // first L1 block
-        SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim,
-                            Lmat, &ia_from, &ja_from, desca,
-                            buf_real, &ib_to, &jb_to, desca, &ictxt);
+        SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim, Lmat, &ia_from, &ja_from,
+                            desca, buf_real, &ib_to, &jb_to, desca, &ictxt);
 
         // negate
         for (D_LL_INT i = 0; i < nloc_elem; ++i)
@@ -117,9 +118,8 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu
         ib_to = ndim + 1;
         jb_to = 1;
 
-        SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim,
-                            Lmat, &ia_from, &ja_from, desca,
-                            buf_real, &ib_to, &jb_to, desca, &ictxt);
+        SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim, Lmat, &ia_from, &ja_from,
+                            desca, buf_real, &ib_to, &jb_to, desca, &ictxt);
 
         // copy imag part
 
@@ -129,18 +129,16 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu
         ib_to = 1;
         jb_to = ndim + 1;
 
-        SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim,
-                            Lmat, &ia_from, &ja_from, desca,
-                            buf_imag, &ib_to, &jb_to, desca, &ictxt);
+        SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim, Lmat, &ia_from, &ja_from,
+                            desca, buf_imag, &ib_to, &jb_to, desca, &ictxt);
 
         ia_from = ndim + 1;
         ja_from = ndim + 1;
         ib_to = ndim + 1;
         jb_to = ndim + 1;
 
-        SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim,
-                            Lmat, &ia_from, &ja_from, desca,
-                            buf_imag, &ib_to, &jb_to, desca, &ictxt);
+        SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim, Lmat, &ia_from, &ja_from,
+                            desca, buf_imag, &ib_to, &jb_to, desca, &ictxt);
 
         // finally copy the L12 block
         ia_from = ndim + 1;
@@ -148,18 +146,16 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu
         ib_to = 1;
         jb_to = 1;
 
-        SL_FunFloat(gemr2d)(&ndim, &ndim, Lmat,
-                            &ia_from, &ja_from, desca, buf_imag, &ib_to,
-                            &jb_to, desca, &ictxt);
+        SL_FunFloat(gemr2d)(&ndim, &ndim, Lmat, &ia_from, &ja_from, desca,
+                            buf_imag, &ib_to, &jb_to, desca, &ictxt);
 
         ia_from = ndim + 1;
         ja_from = 1;
         ib_to = ndim + 1;
         jb_to = 1;
 
-        SL_FunFloat(gemr2d)(&ndim, &ndim, Lmat,
-                            &ia_from, &ja_from, desca, buf_imag, &ib_to,
-                            &jb_to, desca, &ictxt);
+        SL_FunFloat(gemr2d)(&ndim, &ndim, Lmat, &ia_from, &ja_from, desca,
+                            buf_imag, &ib_to, &jb_to, desca, &ictxt);
     }
     D_float factor = 1.0;
     D_INT izero = 1;
@@ -189,11 +185,10 @@ Err_INT BtEig_QLZ(void* DmatA, D_float* Lmat, void* DmatZ, D_INT neig, char* gpu
     {
         // This should be ported to gpus. (elpa has it), but not sure
         // if it will give any millage
-        SL_FunCmplx(gemm)("N", "N", matA->gdims, &neig,
-                          matA->gdims + 1, &alpha_one, matA->data, &izero,
-                          &izero, desca, z_tmp, &izero,
-                          &izero, descz, &beta_zero, matZ->data,
-                          &izero, &izero, descz);
+        SL_FunCmplx(gemm)("N", "N", matA->gdims, &neig, matA->gdims + 1,
+                          &alpha_one, matA->data, &izero, &izero, desca, z_tmp,
+                          &izero, &izero, descz, &beta_zero, matZ->data, &izero,
+                          &izero, descz);
     }
 
     free(z_tmp);

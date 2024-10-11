@@ -1,7 +1,8 @@
-#include "../diago.h"
-#include <stdio.h>
-#include <stdbool.h>
 #include <mpi.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+#include "../diago.h"
 #include "../solvers.h"
 
 #ifdef NOPRINT
@@ -48,8 +49,7 @@ int main(int argc, char* argv[])
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
 
-    if (!my_rank)
-        printf("Init D mat : %f\n", end - start);
+    if (!my_rank) printf("Init D mat : %f\n", end - start);
 
     if (!Matrix)
     {
@@ -82,8 +82,7 @@ int main(int argc, char* argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("Init set : %f\n", end - start);
+    if (!my_rank) printf("Init set : %f\n", end - start);
 
     if (error)
     {
@@ -112,8 +111,7 @@ int main(int argc, char* argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("Setting mat : %f\n", end - start);
+    if (!my_rank) printf("Setting mat : %f\n", end - start);
 
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime();
@@ -122,8 +120,7 @@ int main(int argc, char* argv[])
     error = ProcessSetQueue(Matrix);
 
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("SetQueue Process : %f\n", end - start);
+    if (!my_rank) printf("SetQueue Process : %f\n", end - start);
 
     if (error)
     {
@@ -140,15 +137,18 @@ int main(int argc, char* argv[])
     {
         for (int jloc = 0; jloc < dismat->ldims[1]; ++jloc)
         {
-            int iglob = INDXL2G(iloc, dismat->block_size[0], dismat->pids[0], 0, dismat->pgrid[0]);
-            int jglob = INDXL2G(jloc, dismat->block_size[1], dismat->pids[1], 0, dismat->pgrid[1]);
+            int iglob = INDXL2G(iloc, dismat->block_size[0], dismat->pids[0], 0,
+                                dismat->pgrid[0]);
+            int jglob = INDXL2G(jloc, dismat->block_size[1], dismat->pids[1], 0,
+                                dismat->pgrid[1]);
 
             D_LL_INT gele = iglob * Gcols + jglob;
             D_Cmplx tmp11 = csin(gele + I * ccos(gele));
             gele = jglob * Gcols + iglob;
             tmp11 = tmp11 + conj(csin(gele + I * ccos(gele)));
 
-            if (cabs(tmp11 - dismat->data[iloc * dismat->lda[0] + jloc * dismat->lda[1]]) > 1e-6)
+            if (cabs(tmp11 - dismat->data[iloc * dismat->lda[0] +
+                                          jloc * dismat->lda[1]]) > 1e-6)
             {
                 loc_correct = false;
             };
@@ -156,7 +156,8 @@ int main(int argc, char* argv[])
     }
 
     bool elem_pass = true;
-    MPI_Reduce(&loc_correct, &elem_pass, 1, MPI_C_BOOL, MPI_LOR, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&loc_correct, &elem_pass, 1, MPI_C_BOOL, MPI_LOR, 0,
+               MPI_COMM_WORLD);
     //////print Local block
     // if (my_rank == 0)
     // {
@@ -192,8 +193,7 @@ int main(int argc, char* argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime();
-    if (!my_rank)
-        printf("Diagonalization.......\n");
+    if (!my_rank) printf("Diagonalization.......\n");
 
 #ifdef TEST_ELPA
     Heev_Elpa(Matrix, eig_vals, Matrix_Z, -1, 2, NULL, 1);
@@ -208,8 +208,7 @@ int main(int argc, char* argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("Diagonalization time : %f\n", end - start);
+    if (!my_rank) printf("Diagonalization time : %f\n", end - start);
 
 #ifdef NOPRINT
 #undef printf
@@ -217,10 +216,11 @@ int main(int argc, char* argv[])
 
     if (!my_rank)
     {
-        D_float refvals[16] = { -1.01363347e+01, -8.85451267e+00, -4.73670736e+00, -4.41315701e+00,
-                                -9.16672860e-01, -1.27597110e-01, -2.06397617e-02, -7.57303011e-04,
-                                7.83462424e-04, 1.85921577e-02, 2.40734728e-01, 6.46603001e-01,
-                                4.23501051e+00, 4.78593026e+00, 7.46607179e+00, 9.85701459e+00 };
+        D_float refvals[16] = {
+            -1.01363347e+01, -8.85451267e+00, -4.73670736e+00, -4.41315701e+00,
+            -9.16672860e-01, -1.27597110e-01, -2.06397617e-02, -7.57303011e-04,
+            7.83462424e-04,  1.85921577e-02,  2.40734728e-01,  6.46603001e-01,
+            4.23501051e+00,  4.78593026e+00,  7.46607179e+00,  9.85701459e+00};
 
 #ifdef PRINT_EIGS
         for (D_INT ii = 0; ii < Grows; ++ii)
@@ -231,10 +231,10 @@ int main(int argc, char* argv[])
         bool pass = true;
         for (D_INT ii = 0; ii < Grows; ++ii)
         {
-            if (fabs(creal(eig_vals[ii]) - refvals[ii]) > 1e-5 || fabs(cimag(eig_vals[ii]) - 0.0) > 1e-8)
+            if (fabs(creal(eig_vals[ii]) - refvals[ii]) > 1e-5 ||
+                fabs(cimag(eig_vals[ii]) - 0.0) > 1e-8)
                 pass = false;
-            if (!pass)
-                break;
+            if (!pass) break;
         }
 
         if (pass)

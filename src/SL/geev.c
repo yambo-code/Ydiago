@@ -1,28 +1,29 @@
 // This file contains Generalized eigen solver
-#include "../solvers.h"
-#include "../matrix/matrix.h"
-#include "scalapack_header.h"
-#include <ctype.h>
-#include <string.h>
-#include "../diago.h"
-#include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
-#include "../common/min_max.h"
-#include <stdlib.h>
-#include <math.h>
 #include <complex.h>
+#include <ctype.h>
+#include <math.h>
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 
-Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
-             void* Deig_vecsL, void* Deig_vecsR)
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../common/min_max.h"
+#include "../diago.h"
+#include "../matrix/matrix.h"
+#include "../solvers.h"
+#include "scalapack_header.h"
+
+Err_INT Geev(void* DmatA, D_Cmplx* eig_vals, void* Deig_vecsL, void* Deig_vecsR)
 {
     // diagozalized any matrix
     /*  Unlike for hermitian case, there is no direct solver for non-hermitian.
-        This function is constructed from the individual pieces that were implemented in
-        scalapack library.
+        This function is constructed from the individual pieces that were
+    implemented in scalapack library.
 
-        ! Once can improve the accuracy by balancing with gebal, but unfortunaly,
-        ! gebal is present only for real case (MKL has complex case though)
+        ! Once can improve the accuracy by balancing with gebal, but
+    unfortunaly, ! gebal is present only for real case (MKL has complex case
+    though)
 
         The following three steps are performed in this function
         to diagonalize any non-hermitian matrix:
@@ -53,7 +54,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
 
     if (error)
     {
-        return error; // Fatal error, return immediately.
+        return error;  // Fatal error, return immediately.
     }
 
     if (eig_vecsL)
@@ -61,14 +62,14 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         error = check_mat_diago(eig_vecsL, false);
         if (error)
         {
-            return error; // Fatal error, return immediately.
+            return error;  // Fatal error, return immediately.
         }
 
         // zero out the buffers
         error = set_zero(eig_vecsL);
         if (error)
         {
-            return error; // Fatal error, return immediately.
+            return error;  // Fatal error, return immediately.
         }
     }
 
@@ -77,14 +78,14 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         error = check_mat_diago(eig_vecsR, false);
         if (error)
         {
-            return error; // Fatal error, return immediately.
+            return error;  // Fatal error, return immediately.
         }
 
         // zero out the buffers
         error = set_zero(eig_vecsR);
         if (error)
         {
-            return error; // Fatal error, return immediately.
+            return error;  // Fatal error, return immediately.
         }
     }
     // FIX ME : We need to check if two matrices have same context, dims etc
@@ -93,7 +94,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     {
         // Due to restriction from P?lahqr, block size must be >= 6
         error = INCOMPATIBLE_BLOCK_SIZE_ERR;
-        return error; // Fatal error, return immediately.
+        return error;  // Fatal error, return immediately.
     }
 
     // zero out the eigen value buffer
@@ -104,7 +105,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
 
     if (!matA->cpu_engage)
     {
-        goto end_Geev; // cpu not participating in diago
+        goto end_Geev;  // cpu not participating in diago
     }
 
     D_INT desca[9], descQ[9];
@@ -115,7 +116,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         goto end_Geev;
     }
 
-    D_INT izero = 1; // scalapack indices start from 1
+    D_INT izero = 1;  // scalapack indices start from 1
     D_Cmplx* tau = calloc(matA->gdims[0], sizeof(*tau));
 
     if (!tau)
@@ -130,8 +131,8 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     // 1) Hessenberg reduction
 
     // Query
-    SL_FunCmplx(gehrd)(matA->gdims, &izero, matA->gdims, matA->data,
-                       &izero, &izero, desca, tau, work_tmp, &lwork, &err_code);
+    SL_FunCmplx(gehrd)(matA->gdims, &izero, matA->gdims, matA->data, &izero,
+                       &izero, desca, tau, work_tmp, &lwork, &err_code);
 
     if (err_code)
     {
@@ -145,8 +146,8 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     if (hess_work)
     {
         // Compute the Hessenberg reduction
-        SL_FunCmplx(gehrd)(matA->gdims, &izero, matA->gdims, matA->data,
-                           &izero, &izero, desca, tau, hess_work, &lwork, &err_code);
+        SL_FunCmplx(gehrd)(matA->gdims, &izero, matA->gdims, matA->data, &izero,
+                           &izero, desca, tau, hess_work, &lwork, &err_code);
     }
     else
     {
@@ -163,7 +164,7 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     }
 
     D_Cmplx cmplx_dummy = 0;
-    D_Cmplx* Qmat = &cmplx_dummy; // buffer to store similarity matrix
+    D_Cmplx* Qmat = &cmplx_dummy;  // buffer to store similarity matrix
 
     if (Deig_vecsL || Deig_vecsR)
     {
@@ -206,10 +207,10 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         // construct the similarity matrix of the Hessenberg reduction
         // Query
         lwork = -1;
-        SL_FunCmplx(unmhr)("R", "N", matA->gdims, matA->gdims,
-                           &izero, matA->gdims, matA->data, &izero, &izero,
-                           desca, tau, Qmat, &izero, &izero, descQ,
-                           work_tmp, &lwork, &err_code);
+        SL_FunCmplx(unmhr)("R", "N", matA->gdims, matA->gdims, &izero,
+                           matA->gdims, matA->data, &izero, &izero, desca, tau,
+                           Qmat, &izero, &izero, descQ, work_tmp, &lwork,
+                           &err_code);
         if (err_code)
         {
             error = SL_WORK_SPACE_ERROR;
@@ -222,10 +223,10 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
 
         if (similarly_work)
         {
-            SL_FunCmplx(unmhr)("R", "N", matA->gdims, matA->gdims,
-                               &izero, matA->gdims, matA->data, &izero, &izero,
-                               desca, tau, Qmat, &izero, &izero, descQ,
-                               similarly_work, &lwork, &err_code);
+            SL_FunCmplx(unmhr)("R", "N", matA->gdims, matA->gdims, &izero,
+                               matA->gdims, matA->data, &izero, &izero, desca,
+                               tau, Qmat, &izero, &izero, descQ, similarly_work,
+                               &lwork, &err_code);
         }
         else
         {
@@ -278,8 +279,8 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
     lwork = -1;
     // Query
     SL_FunCmplx(lahqr)(&wantt, &wantz, matA->gdims, &izero, matA->gdims,
-                       matA->data, desca, eig_vals, matA->gdims, &izero,
-                       Qmat, descQ, work_tmp, &lwork, iwork_tmp, &ilwork, &err_code);
+                       matA->data, desca, eig_vals, matA->gdims, &izero, Qmat,
+                       descQ, work_tmp, &lwork, iwork_tmp, &ilwork, &err_code);
 
     if (err_code)
     {
@@ -298,7 +299,8 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
         // Compute the schur decompositon to the eigen values
         SL_FunCmplx(lahqr)(&wantt, &wantz, matA->gdims, &izero, matA->gdims,
                            matA->data, desca, eig_vals, &izero, matA->gdims,
-                           Qmat, descQ, schur_work, &lwork, iwork, &ilwork, &err_code);
+                           Qmat, descQ, schur_work, &lwork, iwork, &ilwork,
+                           &err_code);
     }
     else
     {
@@ -367,9 +369,9 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
 
     if (trevc_work && trevc_rwork)
     {
-        SL_FunCmplx(trevc)(&side, &howmny, select, matA->gdims,
-                           matA->data, desca, vl, descvl, vr, descvr,
-                           &mm_trevc, matA->gdims, trevc_work, trevc_rwork, &err_code);
+        SL_FunCmplx(trevc)(&side, &howmny, select, matA->gdims, matA->data,
+                           desca, vl, descvl, vr, descvr, &mm_trevc,
+                           matA->gdims, trevc_work, trevc_rwork, &err_code);
 
         if (!err_code && Deig_vecsR)
         {
@@ -379,7 +381,8 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
                 D_float alpha = 0.0;
                 D_INT jx = i + 1;
                 // Compute the norm
-                SLvec_norm2(eig_vecsR->gdims, &alpha, eig_vecsR->data, &izero, &jx, descvr, &izero);
+                SLvec_norm2(eig_vecsR->gdims, &alpha, eig_vecsR->data, &izero,
+                            &jx, descvr, &izero);
                 // Sanity check
                 if (fabs(alpha) < 1e-8)
                 {
@@ -388,20 +391,22 @@ Err_INT Geev(void* DmatA, D_Cmplx* eig_vals,
                 }
                 D_Cmplx beta = 1.0 / alpha;
                 // scale
-                SL_FunCmplx(scal)(eig_vecsR->gdims, &beta, eig_vecsR->data, &izero, &jx, descvr, &izero);
+                SL_FunCmplx(scal)(eig_vecsR->gdims, &beta, eig_vecsR->data,
+                                  &izero, &jx, descvr, &izero);
             }
             // compute the left eigenvectors from right Left = (Right)^-H
-            // NM : We compute the left evs from inverse of right evs instead of computing
-            // from p?trevc to avoid non-identity
-            // overlap.
+            // NM : We compute the left evs from inverse of right evs instead of
+            // computing from p?trevc to avoid non-identity overlap.
             if (Deig_vecsL)
             {
-                // Note, unlike Right eigenvectors, left eigenvectors are not normalized
+                // Note, unlike Right eigenvectors, left eigenvectors are not
+                // normalized
                 D_Cmplx beta = 0.0;
                 D_Cmplx alpha_one = 1.0;
                 // store L = R^H
-                SL_FunCmplx(geadd)("C", eig_vecsR->gdims, eig_vecsR->gdims + 1, &alpha_one,
-                                   vr, &izero, &izero, descvr, &beta, vl, &izero, &izero, descvl);
+                SL_FunCmplx(geadd)("C", eig_vecsR->gdims, eig_vecsR->gdims + 1,
+                                   &alpha_one, vr, &izero, &izero, descvr,
+                                   &beta, vl, &izero, &izero, descvl);
                 // Compute inverse of R^H
                 error = Inverse_Dmat(Deig_vecsL);
             }
@@ -422,7 +427,8 @@ end_Geev1:;
     free(tau);
 end_Geev:;
     // Bcast all the eigen values
-    err_code = MPI_Bcast(eig_vals, matA->gdims[0], D_Cmplx_MPI_TYPE, 0, matA->comm);
+    err_code =
+        MPI_Bcast(eig_vals, matA->gdims[0], D_Cmplx_MPI_TYPE, 0, matA->comm);
     if (!error && err_code)
     {
         // return the true error

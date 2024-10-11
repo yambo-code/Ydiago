@@ -1,9 +1,10 @@
-#include "../diago.h"
-#include <stdio.h>
-#include <stdbool.h>
 #include <mpi.h>
-#include "../solvers.h"
+#include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
+
+#include "../diago.h"
+#include "../solvers.h"
 
 #undef NOPRINT
 
@@ -33,8 +34,7 @@ int main(int argc, char* argv[])
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
 
-    if (!my_rank)
-        printf("Init D mat : %f\n", end - start);
+    if (!my_rank) printf("Init D mat : %f\n", end - start);
 
     if (!Matrix)
     {
@@ -67,8 +67,7 @@ int main(int argc, char* argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("Init set : %f\n", end - start);
+    if (!my_rank) printf("Init set : %f\n", end - start);
 
     if (error)
     {
@@ -92,8 +91,7 @@ int main(int argc, char* argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("Setting mat : %f\n", end - start);
+    if (!my_rank) printf("Setting mat : %f\n", end - start);
 
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime();
@@ -102,8 +100,7 @@ int main(int argc, char* argv[])
     error = ProcessSetQueue(Matrix);
 
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("SetQueue Process : %f\n", end - start);
+    if (!my_rank) printf("SetQueue Process : %f\n", end - start);
 
     if (error)
     {

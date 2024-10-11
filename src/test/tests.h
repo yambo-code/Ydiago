@@ -1,18 +1,19 @@
 #pragma once
 
-#include "../diago.h"
-#include "../common/dtypes.h"
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <mpi.h>
-#include "../solvers.h"
-#include "../matrix/matrix.h"
-#include "../SL/scalapack_header.h"
-#include <ctype.h>
 #include <complex.h>
+#include <ctype.h>
 #include <math.h>
+#include <mpi.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "../SL/scalapack_header.h"
+#include "../common/dtypes.h"
+#include "../diago.h"
+#include "../matrix/matrix.h"
+#include "../solvers.h"
 
 #define check_error(a)                               \
     {                                                \
@@ -31,6 +32,7 @@
         }                                            \
     }
 
-Err_INT load_mat_file(const char* mat_file, const char* eig_file, void* DmatA, D_Cmplx* eig_vals, bool bse_mat);
+Err_INT load_mat_file(const char* mat_file, const char* eig_file, void* DmatA,
+                      D_Cmplx* eig_vals, bool bse_mat);
 
 void copy_mats(void* des_mat, void* src_mat);

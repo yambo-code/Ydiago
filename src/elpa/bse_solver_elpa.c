@@ -2,28 +2,31 @@
 #include "../diago.h"
 
 #ifdef WITH_ELPA
-#include "elpa_wrap.h"
-#include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
-#include <elpa/elpa.h>
-#include "../matrix/matrix.h"
-#include "../common/min_max.h"
-#include "../common/gpu_helpers.h"
-#include <stdlib.h>
-#include "../solvers.h"
-#include "../SL/scalapack_header.h"
-#include <math.h>
 #include <complex.h>
+#include <elpa/elpa.h>
+#include <math.h>
+#include <mpi.h>
+#include <stdlib.h>
 
-static void elpa_skew_eig_vecs_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, D_float* ev,
-                                   D_LL_INT ev_nele, D_float* q, D_LL_INT q_nele, int* error);
+#include "../SL/scalapack_header.h"
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../common/gpu_helpers.h"
+#include "../common/min_max.h"
+#include "../matrix/matrix.h"
+#include "../solvers.h"
+#include "elpa_wrap.h"
 
-static void elpa_cholesky_real_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, int* error);
+static void elpa_skew_eig_vecs_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele,
+                                   D_float* ev, D_LL_INT ev_nele, D_float* q,
+                                   D_LL_INT q_nele, int* error);
+
+static void elpa_cholesky_real_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele,
+                                   int* error);
 
 Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
-                        const D_INT elpa_solver,
-                        char* gpu_type, const D_INT nthreads)
+                        const D_INT elpa_solver, char* gpu_type,
+                        const D_INT nthreads)
 {
     /*
     Note the eig_vals buffer must have the dimension of the matrix
@@ -128,7 +131,7 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
         goto end_BSE_Solver1;
     }
 
-    D_float* Wmat = calloc(nloc_elem + 1, sizeof(*Wmat)); // W = L^T \omega * L
+    D_float* Wmat = calloc(nloc_elem + 1, sizeof(*Wmat));  // W = L^T \omega * L
 
     if (Wmat)
     {
@@ -141,14 +144,15 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
             }
             else
             {
-                elpa_cholesky_real_gpu(einfo.handle, Ham_r, nloc_elem, &err_code);
+                elpa_cholesky_real_gpu(einfo.handle, Ham_r, nloc_elem,
+                                       &err_code);
             }
             //  Elpa gives upper triangular. So transpose
             D_float alpha_tmp = 1.0;
             D_float beta_tmp = 0.0;
             SL_FunFloat(tradd)("L", "T", matA->gdims, matA->gdims + 1,
-                               &alpha_tmp, Ham_r, &izero, &izero,
-                               desca, &beta_tmp, Wmat, &izero, &izero, desca);
+                               &alpha_tmp, Ham_r, &izero, &izero, desca,
+                               &beta_tmp, Wmat, &izero, &izero, desca);
 
             // swap the Ham_r and Wmat pointer to avoid copying
             D_float* tmp_ptr = Wmat;
@@ -163,7 +167,6 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
         }
         else
         {
-
             // 3) COmpute W = L^T \omega * L
             /*
             Note that this is real. and W is skew symmetric.
@@ -173,9 +176,10 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
             /*
             For Elpa there is real skew symmetric solver, so we use it,
             We need postive eigen values of (-iW), where W is skew symmetric
-            As elpa only computes the first n eigen values, we compute the first n negative (ofcourse imaginary)
-            eigen values of skew symmetric matrix (-W), which correspond to positve eigenvalues of
-            -iW. Due to this, we always are obliged to request the full spectrum with ELPA
+            As elpa only computes the first n eigen values, we compute the first
+            n negative (ofcourse imaginary) eigen values of skew symmetric
+            matrix (-W), which correspond to positve eigenvalues of -iW. Due to
+            this, we always are obliged to request the full spectrum with ELPA
             */
             if (!error)
             {
@@ -200,12 +204,14 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
         {
             if (!gpu_calc)
             {
-                elpa_skew_eigenvectors(einfo.handle, Wmat, evals_tmp, evecs_tmp, &err_code);
+                elpa_skew_eigenvectors(einfo.handle, Wmat, evals_tmp, evecs_tmp,
+                                       &err_code);
             }
             else
             {
                 elpa_skew_eig_vecs_gpu(einfo.handle, Wmat, nloc_elem, evals_tmp,
-                                       matA->gdims[0], evecs_tmp, 2 * nloc_elem, &err_code);
+                                       matA->gdims[0], evecs_tmp, 2 * nloc_elem,
+                                       &err_code);
             }
             if (err_code)
             {
@@ -218,8 +224,8 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
                     // -ve sign because we diagonalized -W instead of W
                     eig_vals[i] = -evals_tmp[i];
                 }
-                // The skew symmetric eigen vectors are arranged as [:,:eigs,:2].
-                // Copy the eigen vectors to matA
+                // The skew symmetric eigen vectors are arranged as
+                // [:,:eigs,:2]. Copy the eigen vectors to matA
                 for (D_LL_INT i = 0; i < nloc_elem; ++i)
                 {
                     matZ->data[i] = evecs_tmp[i] + I * evecs_tmp[i + nloc_elem];
@@ -269,7 +275,8 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
 
                 if (cabs(alpha) < 1e-8)
                 {
-                    // FIX ME : NM: This is an error because we only want eigen values >0
+                    // FIX ME : NM: This is an error because we only want eigen
+                    // values >0
                     continue;
                 }
                 else
@@ -278,7 +285,8 @@ Err_INT BSE_Solver_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
                 }
                 D_INT jx = i + 1;
 
-                SL_FunCmplx(scal)(matZ->gdims, &alpha, matZ->data, &izero, &jx, descz, &izero);
+                SL_FunCmplx(scal)(matZ->gdims, &alpha, matZ->data, &izero, &jx,
+                                  descz, &izero);
             }
         }
     }
@@ -293,7 +301,8 @@ end_BSE_Solver0:;
     return error;
 }
 
-static void elpa_cholesky_real_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, int* error)
+static void elpa_cholesky_real_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele,
+                                   int* error)
 {
     *error = 0;
     if (!isGPUpresent())
@@ -328,8 +337,9 @@ static void elpa_cholesky_real_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, i
 #endif
 }
 
-static void elpa_skew_eig_vecs_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, D_float* ev,
-                                   D_LL_INT ev_nele, D_float* q, D_LL_INT q_nele, int* error)
+static void elpa_skew_eig_vecs_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele,
+                                   D_float* ev, D_LL_INT ev_nele, D_float* q,
+                                   D_LL_INT q_nele, int* error)
 {
     *error = 0;
     if (!isGPUpresent())
@@ -352,13 +362,14 @@ static void elpa_skew_eig_vecs_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, D
         elpa_skew_eigenvectors_d_ptr_d(handle, a_dev, ev_dev, q_dev, error);
 #else
         elpa_skew_eigenvectors_d_ptr_f(handle, a_dev, ev_dev, q_dev, error);
-#endif // with_double
-       //
+#endif  // with_double
+        //
         if (!*error)
         {
             // Copy back to cpu
             *error = gpu_memcpy(ev, ev_dev, ev_nele * sizeof(*ev), Copy2CPU);
-            *error = gpu_memcpy(q, q_dev, q_nele * sizeof(*q), Copy2CPU) || *error;
+            *error =
+                gpu_memcpy(q, q_dev, q_nele * sizeof(*q), Copy2CPU) || *error;
         }
     }
     else
@@ -374,4 +385,4 @@ static void elpa_skew_eig_vecs_gpu(elpa_t handle, D_float* a, D_LL_INT a_nele, D
 #endif
 }
 
-#endif // WITH_ELPA
+#endif  // WITH_ELPA

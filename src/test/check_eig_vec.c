@@ -1,6 +1,7 @@
 // function to check eigen vectors and see if diagonalizatin is correct
-#include "tests.h"
 #include <stdbool.h>
+
+#include "tests.h"
 
 void print_loc(void* D_Mat)
 {
@@ -32,8 +33,8 @@ void copy_mats(void* des_mat, void* src_mat)
     return;
 }
 
-D_float check_eig_vecs(void* D_mat, D_Cmplx* eig_vals,
-                       void* Deig_vecs, const D_INT neigs)
+D_float check_eig_vecs(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
+                       const D_INT neigs)
 {
     struct D_Matrix* matA = D_mat;
     struct D_Matrix* eig_vecs = Deig_vecs;
@@ -67,23 +68,20 @@ D_float check_eig_vecs(void* D_mat, D_Cmplx* eig_vals,
     // set the eigevalues which are not computed to zero
     for (D_INT jx = neigs + 1; jx <= eig_vecs->gdims[0]; ++jx)
     {
-        SL_FunCmplx(scal)(eig_vecs->gdims, &alphas, eig_vecs->data, &izero, &jx, descz, &izero);
+        SL_FunCmplx(scal)(eig_vecs->gdims, &alphas, eig_vecs->data, &izero, &jx,
+                          descz, &izero);
     }
     // A*Z (n,n) (n,z)
     D_Cmplx alpha = 1.0;
     D_Cmplx beta = 0.0;
 
-    SL_FunCmplx(gemm)("N", "N", matA->gdims, matA->gdims,
-                      matA->gdims, &alpha, matA->data, &izero,
-                      &izero, desca, eig_vecs->data, &izero,
-                      &izero, descz, &beta, bufAZ,
-                      &izero, &izero, descz);
+    SL_FunCmplx(gemm)("N", "N", matA->gdims, matA->gdims, matA->gdims, &alpha,
+                      matA->data, &izero, &izero, desca, eig_vecs->data, &izero,
+                      &izero, descz, &beta, bufAZ, &izero, &izero, descz);
 
-    SL_FunCmplx(gemm)("C", "N", matA->gdims, matA->gdims,
-                      matA->gdims, &alpha, eig_vecs->data, &izero,
-                      &izero, descz, bufAZ, &izero,
-                      &izero, descz, &beta, bufZAZ,
-                      &izero, &izero, descz);
+    SL_FunCmplx(gemm)("C", "N", matA->gdims, matA->gdims, matA->gdims, &alpha,
+                      eig_vecs->data, &izero, &izero, descz, bufAZ, &izero,
+                      &izero, descz, &beta, bufZAZ, &izero, &izero, descz);
 
     // set the diagonal to 1
     for (D_LL_INT i = 0; i < neigs; ++i)
@@ -95,8 +93,10 @@ D_float check_eig_vecs(void* D_mat, D_Cmplx* eig_vals,
         if (prow == matA->pids[0] && pcol == matA->pids[1])
         {
             // compute the local indices
-            D_INT iloc = INDXG2L(i, matA->block_size[0], prow, 0, matA->pgrid[0]);
-            D_INT jloc = INDXG2L(i, matA->block_size[1], pcol, 0, matA->pgrid[1]);
+            D_INT iloc =
+                INDXG2L(i, matA->block_size[0], prow, 0, matA->pgrid[0]);
+            D_INT jloc =
+                INDXG2L(i, matA->block_size[1], pcol, 0, matA->pgrid[1]);
 
             bufZAZ[iloc * matA->lda[0] + jloc * matA->lda[1]] -= eig_vals[i];
         }

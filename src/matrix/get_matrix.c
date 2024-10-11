@@ -1,26 +1,28 @@
 // THis file contains functions that gets elements from the
 // global distribution matrix
 //
-#include "matrix.h"
-#include "../diago.h"
-#include "../SL/scalapack_header.h"
 #include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
 #include <stdlib.h>
 #include <string.h>
+
+#include "../SL/scalapack_header.h"
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../diago.h"
+#include "matrix.h"
 
 struct GetElement
 {
     D_Cmplx* value;
-    D_INT i; // global row index
-    D_INT j; // global col index
+    D_INT i;  // global row index
+    D_INT j;  // global col index
 };
 
-static D_INT* Get_mapP2iD; // maps (iproc,jproc)->mpirank. used in Get_idxG2iD
+static D_INT* Get_mapP2iD;  // maps (iproc,jproc)->mpirank. used in Get_idxG2iD
 static int cmpGetElements(const void* a, const void* b);
 
-static inline D_INT Get_idxG2iD(const D_INT* getCmpPrms, const D_INT i, const D_INT j)
+static inline D_INT Get_idxG2iD(const D_INT* getCmpPrms, const D_INT i,
+                                const D_INT j)
 {
     // getCmpPrms is array[5]{cxt, BlkX, BlkY, NProcX, NProcY}
     D_INT prow = INDXG2P(i, getCmpPrms[1], 0, 0, getCmpPrms[3]);
@@ -30,14 +32,13 @@ static inline D_INT Get_idxG2iD(const D_INT* getCmpPrms, const D_INT i, const D_
 
 Err_INT initiateGetQueue(void* D_mat, const D_LL_INT nelements)
 {
-
     if (!D_mat)
     {
-        return MATRIX_NOT_INIT; // error.
+        return MATRIX_NOT_INIT;  // error.
     }
     struct D_Matrix* mat = D_mat;
 
-    int mpi_error = MPI_Barrier(mat->comm); // make this a collective call
+    int mpi_error = MPI_Barrier(mat->comm);  // make this a collective call
     if (mpi_error != MPI_SUCCESS)
     {
         return DIAGO_MPI_ERROR;
@@ -45,7 +46,7 @@ Err_INT initiateGetQueue(void* D_mat, const D_LL_INT nelements)
 
     if (mat->GetQueuePtr)
     {
-        return QUEUE_ALREADY_INIT; // error. Queue already initated.
+        return QUEUE_ALREADY_INIT;  // error. Queue already initated.
     }
     mat->nGetQueueElements = nelements;
     mat->iget = 0;
@@ -64,7 +65,7 @@ Err_INT DMatGet(void* D_mat, const D_INT i, const D_INT j, D_Cmplx* value)
 {
     if (!D_mat)
     {
-        return MATRIX_NOT_INIT; // error.
+        return MATRIX_NOT_INIT;  // error.
     }
 
     struct D_Matrix* mat = D_mat;
@@ -77,11 +78,11 @@ Err_INT DMatGet(void* D_mat, const D_INT i, const D_INT j, D_Cmplx* value)
 
     if (!mat->GetQueuePtr)
     {
-        return QUEUE_NOT_INIT; // error not initated
+        return QUEUE_NOT_INIT;  // error not initated
     }
     if (mat->iget >= mat->nGetQueueElements)
     {
-        return QUEUE_LIMIT_REACHED; // error out of bounds
+        return QUEUE_LIMIT_REACHED;  // error out of bounds
     }
     struct GetElement* QueuePtr = mat->GetQueuePtr;
 
@@ -102,14 +103,14 @@ Err_INT ProcessGetQueue(void* D_mat)
 
     if (!D_mat)
     {
-        error = MATRIX_NOT_INIT; // error.
+        error = MATRIX_NOT_INIT;  // error.
         goto error_get_queue_0;
     }
 
     struct D_Matrix* mat = D_mat;
     if (!mat->GetQueuePtr)
     {
-        error = QUEUE_NOT_INIT; // error not initated
+        error = QUEUE_NOT_INIT;  // error not initated
         goto error_get_queue_1;
     }
 
@@ -117,15 +118,16 @@ Err_INT ProcessGetQueue(void* D_mat)
     Get_mapP2iD = mat->mapP2iD;
 
     // next we need to sort the GetQueue array based on the ranks
-    const D_INT cmpGetupEle[5] = { mat->blacs_ctxt, mat->block_size[0],
-                                   mat->block_size[1], mat->pgrid[0],
-                                   mat->pgrid[1] };
+    const D_INT cmpGetupEle[5] = {mat->blacs_ctxt, mat->block_size[0],
+                                  mat->block_size[1], mat->pgrid[0],
+                                  mat->pgrid[1]};
     if (mat->nGetQueueElements > 0)
     {
         // setup the comparison function
         cmpGetElements(NULL, cmpGetupEle);
         // Now sort
-        qsort(mat->GetQueuePtr, mat->nGetQueueElements, sizeof(struct GetElement), cmpGetElements);
+        qsort(mat->GetQueuePtr, mat->nGetQueueElements,
+              sizeof(struct GetElement), cmpGetElements);
     }
 
     // some MPI related stuff
@@ -141,7 +143,7 @@ Err_INT ProcessGetQueue(void* D_mat)
     int* counts_send = calloc(4 * TotalCommCpus, sizeof(*counts_send));
     if (!counts_send)
     {
-        error = BUF_ALLOC_FAILED; // error
+        error = BUF_ALLOC_FAILED;  // error
         goto error_get_queue_1;
     }
     int* displacements_send = counts_send + TotalCommCpus * 1;
@@ -160,7 +162,8 @@ Err_INT ProcessGetQueue(void* D_mat)
         ++counts_recv[tmp_rank];
     }
 
-    mpi_error = MPI_Alltoall(counts_recv, 1, MPI_INT, counts_send, 1, MPI_INT, mat->comm);
+    mpi_error = MPI_Alltoall(counts_recv, 1, MPI_INT, counts_send, 1, MPI_INT,
+                             mat->comm);
     if (mpi_error != MPI_SUCCESS)
     {
         error = DIAGO_MPI_ERROR;
@@ -200,7 +203,7 @@ Err_INT ProcessGetQueue(void* D_mat)
     D_INT* tmp_idx_buf_recv = malloc(2 * sizeof(D_INT) * (total_recv + 1));
     if (!tmp_idx_buf_recv)
     {
-        error = BUF_ALLOC_FAILED; // error
+        error = BUF_ALLOC_FAILED;  // error
         goto error_get_queue_3;
     }
 
@@ -208,7 +211,7 @@ Err_INT ProcessGetQueue(void* D_mat)
     D_INT* tmp_idx_buf_send = malloc(2 * sizeof(D_INT) * (total_send + 1));
     if (!tmp_idx_buf_send)
     {
-        error = BUF_ALLOC_FAILED; // error
+        error = BUF_ALLOC_FAILED;  // error
         free(tmp_idx_buf_recv);
         goto error_get_queue_3;
     }
@@ -221,8 +224,8 @@ Err_INT ProcessGetQueue(void* D_mat)
 
     // AlltoAllv
     mpi_error = MPI_Alltoallv(tmp_idx_buf_recv, counts_recv, displacements_recv,
-                              MPI_idxType, tmp_idx_buf_send, counts_send, displacements_send,
-                              MPI_idxType, mat->comm);
+                              MPI_idxType, tmp_idx_buf_send, counts_send,
+                              displacements_send, MPI_idxType, mat->comm);
 
     if (mpi_error != MPI_SUCCESS)
     {
@@ -237,16 +240,20 @@ Err_INT ProcessGetQueue(void* D_mat)
     D_Cmplx* send_buf = malloc(sizeof(*send_buf) * (total_send + 1));
     if (!send_buf)
     {
-        error = BUF_ALLOC_FAILED; // error
+        error = BUF_ALLOC_FAILED;  // error
         free(tmp_idx_buf_send);
         goto error_get_queue_3;
     }
     // pack the send buffer
     for (D_LL_INT i = 0; i < total_send; ++i)
     {
-        D_INT loc_idx_row = INDXG2L(tmp_idx_buf_send[2 * i], mat->block_size[0], mat->pids[0], 0, mat->pgrid[0]);
-        D_INT loc_idx_col = INDXG2L(tmp_idx_buf_send[2 * i + 1], mat->block_size[1], mat->pids[1], 0, mat->pgrid[1]);
-        send_buf[i] = mat->data[loc_idx_row * mat->lda[0] + loc_idx_col * mat->lda[1]];
+        D_INT loc_idx_row = INDXG2L(tmp_idx_buf_send[2 * i], mat->block_size[0],
+                                    mat->pids[0], 0, mat->pgrid[0]);
+        D_INT loc_idx_col =
+            INDXG2L(tmp_idx_buf_send[2 * i + 1], mat->block_size[1],
+                    mat->pids[1], 0, mat->pgrid[1]);
+        send_buf[i] =
+            mat->data[loc_idx_row * mat->lda[0] + loc_idx_col * mat->lda[1]];
     }
     free(tmp_idx_buf_send);
 
@@ -254,13 +261,12 @@ Err_INT ProcessGetQueue(void* D_mat)
     D_Cmplx* recv_buf = malloc(sizeof(*recv_buf) * (total_recv + 1));
     if (!recv_buf)
     {
-        error = BUF_ALLOC_FAILED; // error
+        error = BUF_ALLOC_FAILED;  // error
         goto error_get_queue_4;
     }
-    mpi_error = MPI_Alltoallv(send_buf, counts_send,
-                              displacements_send, D_Cmplx_MPI_TYPE,
-                              recv_buf, counts_recv, displacements_recv,
-                              D_Cmplx_MPI_TYPE, mat->comm);
+    mpi_error = MPI_Alltoallv(send_buf, counts_send, displacements_send,
+                              D_Cmplx_MPI_TYPE, recv_buf, counts_recv,
+                              displacements_recv, D_Cmplx_MPI_TYPE, mat->comm);
     if (mpi_error != MPI_SUCCESS)
     {
         error = DIAGO_MPI_ERROR;
@@ -296,7 +302,8 @@ error_get_queue_0:
 }
 
 // Fortran version of get element
-Err_INT DMatGet_fortran(void* D_mat, const D_INT i, const D_INT j, D_Cmplx* value)
+Err_INT DMatGet_fortran(void* D_mat, const D_INT i, const D_INT j,
+                        D_Cmplx* value)
 {
     return DMatGet(D_mat, i - 1, j - 1, value);
 }

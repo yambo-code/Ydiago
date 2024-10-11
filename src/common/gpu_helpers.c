@@ -5,9 +5,11 @@
 /* */
 
 #include "gpu_helpers.h"
-#include <string.h>
-#include <stddef.h>
+
 #include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
+
 #include "../diago.h"
 
 #ifdef WITH_GPU
@@ -79,7 +81,8 @@ void* gpu_malloc(size_t size)
     return gpu_ptr;
 }
 
-int gpu_memcpy(void* dest_ptr, void* src_ptr, size_t size, enum gpuMemcpyDir dir)
+int gpu_memcpy(void* dest_ptr, void* src_ptr, size_t size,
+               enum gpuMemcpyDir dir)
 {
     int error = 0;
 #ifdef WITH_GPU
@@ -87,14 +90,16 @@ int gpu_memcpy(void* dest_ptr, void* src_ptr, size_t size, enum gpuMemcpyDir dir
 #if defined(WITH_CUDA)
     if (dir == Copy2GPU)
     {
-        if (cudaMemcpy(dest_ptr, src_ptr, size, cudaMemcpyHostToDevice) != cudaSuccess)
+        if (cudaMemcpy(dest_ptr, src_ptr, size, cudaMemcpyHostToDevice) !=
+            cudaSuccess)
         {
             error = 1;
         }
     }
     else if (dir == Copy2CPU)
     {
-        if (cudaMemcpy(dest_ptr, src_ptr, size, cudaMemcpyDeviceToHost) != cudaSuccess)
+        if (cudaMemcpy(dest_ptr, src_ptr, size, cudaMemcpyDeviceToHost) !=
+            cudaSuccess)
         {
             error = 1;
         }
@@ -102,14 +107,16 @@ int gpu_memcpy(void* dest_ptr, void* src_ptr, size_t size, enum gpuMemcpyDir dir
 #elif defined(WITH_HIP)
     if (dir == Copy2GPU)
     {
-        if (hipMemcpy(dest_ptr, src_ptr, size, hipMemcpyHostToDevice) != hipSuccess)
+        if (hipMemcpy(dest_ptr, src_ptr, size, hipMemcpyHostToDevice) !=
+            hipSuccess)
         {
             error = 1;
         }
     }
     else if (dir == Copy2CPU)
     {
-        if (hipMemcpy(dest_ptr, src_ptr, size, hipMemcpyDeviceToHost) != hipSuccess)
+        if (hipMemcpy(dest_ptr, src_ptr, size, hipMemcpyDeviceToHost) !=
+            hipSuccess)
         {
             error = 1;
         }
@@ -119,11 +126,13 @@ int gpu_memcpy(void* dest_ptr, void* src_ptr, size_t size, enum gpuMemcpyDir dir
     int host_id = omp_get_initial_device();
     if (dir == Copy2GPU)
     {
-        error = omp_target_memcpy(dest_ptr, src_ptr, size, 0, 0, device_id, host_id);
+        error = omp_target_memcpy(dest_ptr, src_ptr, size, 0, 0, device_id,
+                                  host_id);
     }
     else if (dir == Copy2CPU)
     {
-        error = omp_target_memcpy(dest_ptr, src_ptr, size, 0, 0, host_id, device_id);
+        error = omp_target_memcpy(dest_ptr, src_ptr, size, 0, 0, host_id,
+                                  device_id);
     }
 #else
 #error unsupported gpu flag

@@ -1,9 +1,10 @@
-#include "matrix.h"
-#include "../diago.h"
-#include "../common/error.h"
 #include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../diago.h"
+#include "matrix.h"
 
-void descinit_(D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*);
+void descinit_(D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*, D_INT*,
+               D_INT*, D_INT*);
 
 Err_INT set_descriptor(void* D_mat, D_INT* desc)
 {
@@ -11,7 +12,7 @@ Err_INT set_descriptor(void* D_mat, D_INT* desc)
 
     if (!D_mat)
     {
-        return MATRIX_NOT_INIT; // error.
+        return MATRIX_NOT_INIT;  // error.
     }
     struct D_Matrix* mat = D_mat;
 
@@ -31,8 +32,8 @@ Err_INT set_descriptor(void* D_mat, D_INT* desc)
     D_INT lda = mat->lda[0] > mat->lda[1] ? mat->lda[0] : mat->lda[1];
 
     descinit_(desc, mat->gdims, mat->gdims + 1, mat->block_size,
-              mat->block_size + 1, &izero, &izero, &mat->blacs_ctxt,
-              &lda, &err_info);
+              mat->block_size + 1, &izero, &izero, &mat->blacs_ctxt, &lda,
+              &err_info);
 
     if (err_info)
     {

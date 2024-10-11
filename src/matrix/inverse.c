@@ -1,14 +1,15 @@
 // This file contains Generalized eigen solver
 
-#include "matrix.h"
-#include "../SL/scalapack_header.h"
-#include "../diago.h"
-#include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
-#include <stdlib.h>
-#include <math.h>
 #include <complex.h>
+#include <math.h>
+#include <mpi.h>
+#include <stdlib.h>
+
+#include "../SL/scalapack_header.h"
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../diago.h"
+#include "matrix.h"
 
 Err_INT Inverse_Dmat(void* Dmat)
 {
@@ -20,11 +21,11 @@ Err_INT Inverse_Dmat(void* Dmat)
 
     Err_INT error = check_mat_diago(matA, false);
     D_INT err_code = 0;
-    D_INT izero = 1; // scalapack indices start from 1
+    D_INT izero = 1;  // scalapack indices start from 1
 
     if (error)
     {
-        return error; // Fatal error, return immediately.
+        return error;  // Fatal error, return immediately.
     }
 
     D_INT desca[9];
@@ -36,15 +37,16 @@ Err_INT Inverse_Dmat(void* Dmat)
 
     if (!matA->cpu_engage)
     {
-        goto end_inv; // cpu not participating in diago
+        goto end_inv;  // cpu not participating in diago
     }
 
     // 1) compute LU decomposition
-    D_INT* ipiv = calloc(matA->ldims[0] + matA->block_size[0] + 1, sizeof *ipiv);
+    D_INT* ipiv =
+        calloc(matA->ldims[0] + matA->block_size[0] + 1, sizeof *ipiv);
     if (ipiv)
     {
-        SL_FunCmplx(getrf)(matA->gdims, matA->gdims + 1, matA->data,
-                           &izero, &izero, desca, ipiv, &err_code);
+        SL_FunCmplx(getrf)(matA->gdims, matA->gdims + 1, matA->data, &izero,
+                           &izero, desca, ipiv, &err_code);
         if (err_code)
         {
             error = SL_LU_ERROR;
@@ -58,8 +60,9 @@ Err_INT Inverse_Dmat(void* Dmat)
             D_Cmplx work_tmp[3];
             D_INT iwork_tmp[3];
             //
-            SL_FunCmplx(getri)(matA->gdims, matA->data, &izero, &izero,
-                               desca, ipiv, work_tmp, &lwork, iwork_tmp, &liwork, &err_code);
+            SL_FunCmplx(getri)(matA->gdims, matA->data, &izero, &izero, desca,
+                               ipiv, work_tmp, &lwork, iwork_tmp, &liwork,
+                               &err_code);
             //
             lwork = rint(creal(work_tmp[0]) * SL_WORK_QUERY_FAC);
             liwork = iwork_tmp[0];
@@ -71,7 +74,8 @@ Err_INT Inverse_Dmat(void* Dmat)
             {
                 // perform the inverse
                 SL_FunCmplx(getri)(matA->gdims, matA->data, &izero, &izero,
-                                   desca, ipiv, work, &lwork, iwork, &liwork, &err_code);
+                                   desca, ipiv, work, &lwork, iwork, &liwork,
+                                   &err_code);
                 if (err_code)
                 {
                     error = SL_TRI_INV_ERROR;

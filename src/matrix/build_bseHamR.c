@@ -1,12 +1,13 @@
-#include "matrix.h"
-#include "../SL/scalapack_header.h"
-#include "../diago.h"
-#include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
-#include <stdlib.h>
-#include <math.h>
 #include <complex.h>
+#include <math.h>
+#include <mpi.h>
+#include <stdlib.h>
+
+#include "../SL/scalapack_header.h"
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../diago.h"
+#include "matrix.h"
 
 Err_INT Construct_BSE_RealHam(void* DmatA, D_float* matA_out)
 {
@@ -38,7 +39,7 @@ Err_INT Construct_BSE_RealHam(void* DmatA, D_float* matA_out)
 
     if (!matA->cpu_engage)
     {
-        return DIAGO_SUCCESS; // these cpus donot participate
+        return DIAGO_SUCCESS;  // these cpus donot participate
     }
 
     D_LL_INT nloc_elem = matA->ldims[0] * matA->ldims[1];
@@ -100,26 +101,23 @@ Err_INT Construct_BSE_RealHam(void* DmatA, D_float* matA_out)
     ja_from = 1;
     ib_to = 1;
     jb_to = 1;
-    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out,
-                        &ia_from, &ja_from, desca, buf1, &ib_to,
-                        &jb_to, desca, &ictxt);
+    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out, &ia_from, &ja_from, desca, buf1,
+                        &ib_to, &jb_to, desca, &ictxt);
 
     ia_from = 1;
     ja_from = 1;
     ib_to = ndim + 1;
     jb_to = ndim + 1;
-    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out,
-                        &ia_from, &ja_from, desca, buf1, &ib_to,
-                        &jb_to, desca, &ictxt);
+    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out, &ia_from, &ja_from, desca, buf1,
+                        &ib_to, &jb_to, desca, &ictxt);
 
     // set real(B) in buf2
     ia_from = 1;
     ja_from = ndim + 1;
     ib_to = ndim + 1;
     jb_to = ndim + 1;
-    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out,
-                        &ia_from, &ja_from, desca, buf2, &ib_to,
-                        &jb_to, desca, &ictxt);
+    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out, &ia_from, &ja_from, desca, buf2,
+                        &ib_to, &jb_to, desca, &ictxt);
 
     // negate and set the -Re(B) in buf2
     for (D_LL_INT i = 0; i < nloc_elem; ++i)
@@ -131,9 +129,8 @@ Err_INT Construct_BSE_RealHam(void* DmatA, D_float* matA_out)
     ja_from = ndim + 1;
     ib_to = 1;
     jb_to = 1;
-    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out,
-                        &ia_from, &ja_from, desca, buf2, &ib_to,
-                        &jb_to, desca, &ictxt);
+    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out, &ia_from, &ja_from, desca, buf2,
+                        &ib_to, &jb_to, desca, &ictxt);
 
     // set imaginary parts
     for (D_LL_INT i = 0; i < nloc_elem; ++i)
@@ -146,26 +143,23 @@ Err_INT Construct_BSE_RealHam(void* DmatA, D_float* matA_out)
     ja_from = ndim + 1;
     ib_to = 1;
     jb_to = ndim + 1;
-    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out,
-                        &ia_from, &ja_from, desca, buf2, &ib_to,
-                        &jb_to, desca, &ictxt);
+    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out, &ia_from, &ja_from, desca, buf2,
+                        &ib_to, &jb_to, desca, &ictxt);
 
     ia_from = 1;
     ja_from = ndim + 1;
     ib_to = ndim + 1;
     jb_to = 1;
-    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out,
-                        &ia_from, &ja_from, desca, buf2, &ib_to,
-                        &jb_to, desca, &ictxt);
+    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out, &ia_from, &ja_from, desca, buf2,
+                        &ib_to, &jb_to, desca, &ictxt);
 
     // fill rest of buf1
     ia_from = 1;
     ja_from = 1;
     ib_to = 1;
     jb_to = ndim + 1;
-    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out,
-                        &ia_from, &ja_from, desca, buf1, &ib_to,
-                        &jb_to, desca, &ictxt);
+    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out, &ia_from, &ja_from, desca, buf1,
+                        &ib_to, &jb_to, desca, &ictxt);
 
     for (D_LL_INT i = 0; i < nloc_elem; ++i)
     {
@@ -176,9 +170,8 @@ Err_INT Construct_BSE_RealHam(void* DmatA, D_float* matA_out)
     ja_from = 1;
     ib_to = ndim + 1;
     jb_to = 1;
-    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out,
-                        &ia_from, &ja_from, desca, buf1, &ib_to,
-                        &jb_to, desca, &ictxt);
+    SL_FunFloat(gemr2d)(&ndim, &ndim, matA_out, &ia_from, &ja_from, desca, buf1,
+                        &ib_to, &jb_to, desca, &ictxt);
 
     // set mat out
     for (D_LL_INT i = 0; i < nloc_elem; ++i)

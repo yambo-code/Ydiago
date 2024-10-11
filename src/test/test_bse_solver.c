@@ -1,7 +1,6 @@
-#include "tests.h"
-
-#include "load_file.c"
 #include "check_eig_vec.c"
+#include "load_file.c"
+#include "tests.h"
 
 int main(int argc, char* argv[])
 {
@@ -40,7 +39,8 @@ int main(int argc, char* argv[])
     D_Cmplx* eig_vals = calloc(Grows, sizeof(*eig_vals));
     check_ptr(eig_vals);
 
-    load_mat_file("test_mats/BSE_100.mat", "test_mats/BSE_100_eigs.mat", Matrix_A, eig_vals_ref, true);
+    load_mat_file("test_mats/BSE_100.mat", "test_mats/BSE_100_eigs.mat",
+                  Matrix_A, eig_vals_ref, true);
 
     void* Matrix_A_copy = init_D_Matrix(Grows, Gcols, blockX, blockY, mpicxt);
     check_ptr(Matrix_A_copy);
@@ -50,14 +50,12 @@ int main(int argc, char* argv[])
     D_INT nfound = Grows / 2;
 
 #ifdef TEST_ELPA
-    if (!my_rank)
-        printf("ELPA Heev\n");
+    if (!my_rank) printf("ELPA Heev\n");
     error = BSE_Solver_Elpa(Matrix_A, eig_vals, Matrix_Z, 2, NULL, 1);
 #else
     // Geev(Matrix, eig_vals, NULL, Matrix_Z);
-    if (!my_rank)
-        printf("Scalapack Heev\n");
-    D_INT range[2] = { Grows / 2 + 1, Grows };
+    if (!my_rank) printf("Scalapack Heev\n");
+    D_INT range[2] = {Grows / 2 + 1, Grows};
     error = BSE_Solver(Matrix_A, range, NULL, eig_vals, Matrix_Z, &nfound);
 #endif
     check_error(error);
@@ -68,11 +66,14 @@ int main(int argc, char* argv[])
         printf("Eigenvalues found : %d .\n", nfound);
         for (D_INT i = 0; i < nfound; ++i)
         {
-            D_float err_eig = 100 * cabs(eig_vals[i] - eig_vals_ref[i]) / cabs(eig_vals_ref[i]);
-            // printf("percentage Error : %f, Ref : %f, Calc : %f\n", err_eig, cabs(eig_vals_ref[i]), cabs(eig_vals[i])  );
+            D_float err_eig = 100 * cabs(eig_vals[i] - eig_vals_ref[i]) /
+                              cabs(eig_vals_ref[i]);
+            // printf("percentage Error : %f, Ref : %f, Calc : %f\n", err_eig,
+            // cabs(eig_vals_ref[i]), cabs(eig_vals[i])  );
             if (err_eig > 2e-2)
             {
-                printf("percentage Error : %f, Ref : %f, Calc : %f\n", err_eig, cabs(eig_vals_ref[i]), cabs(eig_vals[i]));
+                printf("percentage Error : %f, Ref : %f, Calc : %f\n", err_eig,
+                       cabs(eig_vals_ref[i]), cabs(eig_vals[i]));
                 passed = false;
                 break;
             }
@@ -83,9 +84,9 @@ int main(int argc, char* argv[])
             printf("BSE solver Eigenvalues test : Failed.\n");
     }
 
-    D_float eig_res_err = check_eig_vecs(Matrix_A_copy, eig_vals, Matrix_Z, nfound);
-    if (!my_rank)
-        printf("Error : %f \n", eig_res_err);
+    D_float eig_res_err =
+        check_eig_vecs(Matrix_A_copy, eig_vals, Matrix_Z, nfound);
+    if (!my_rank) printf("Error : %f \n", eig_res_err);
 
     free(eig_vals);
     free(eig_vals_ref);

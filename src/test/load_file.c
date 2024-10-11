@@ -1,12 +1,14 @@
-#include "tests.h"
-#include <stdio.h>
 #include <complex.h>
-#include <string.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "tests.h"
 
 static D_LL_INT get_doubles(char* str, D_float* out);
-static Err_INT read_complex_from_file(const char* filename, D_Cmplx* out_arr, D_INT nmax);
+static Err_INT read_complex_from_file(const char* filename, D_Cmplx* out_arr,
+                                      D_INT nmax);
 
 // int main(void)
 // {
@@ -23,7 +25,8 @@ static Err_INT read_complex_from_file(const char* filename, D_Cmplx* out_arr, D_
 //     return 0;
 // }
 
-Err_INT load_mat_file(const char* mat_file, const char* eig_file, void* DmatA, D_Cmplx* eig_vals, bool bse_mat)
+Err_INT load_mat_file(const char* mat_file, const char* eig_file, void* DmatA,
+                      D_Cmplx* eig_vals, bool bse_mat)
 {
     struct D_Matrix* matA = DmatA;
     D_INT dim = matA->gdims[0];
@@ -33,8 +36,7 @@ Err_INT load_mat_file(const char* mat_file, const char* eig_file, void* DmatA, D
     D_Cmplx* tmp_mat = NULL;
     D_LL_INT nset = 0;
     D_INT nmax = dim;
-    if (bse_mat)
-        nmax /= 2;
+    if (bse_mat) nmax /= 2;
 
     int myid;
     MPI_Comm_rank(matA->comm, &myid);
@@ -78,7 +80,8 @@ Err_INT load_mat_file(const char* mat_file, const char* eig_file, void* DmatA, D
     return 0;
 }
 
-Err_INT read_complex_from_file(const char* filename, D_Cmplx* out_arr, D_INT nmax)
+Err_INT read_complex_from_file(const char* filename, D_Cmplx* out_arr,
+                               D_INT nmax)
 {
     FILE* file = fopen(filename, "r"); /* should check the result */
     if (!file)
@@ -96,7 +99,7 @@ Err_INT read_complex_from_file(const char* filename, D_Cmplx* out_arr, D_INT nma
             *hash_char = '\0';
         }
 
-        D_float out_tmp[16]; // to avoid any overflow if
+        D_float out_tmp[16];  // to avoid any overflow if
         // input has more than 2 double present
         D_LL_INT nparsed = get_doubles(line, out_tmp);
         if (!nparsed)
@@ -105,7 +108,7 @@ Err_INT read_complex_from_file(const char* filename, D_Cmplx* out_arr, D_INT nma
         }
         if (nparsed != 2)
         {
-            return -40; // error
+            return -40;  // error
         }
         out_arr[i] = out_tmp[0] + I * out_tmp[1];
         ++i;

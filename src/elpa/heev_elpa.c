@@ -2,28 +2,30 @@
 
 #ifdef WITH_ELPA
 //
-#include "elpa_wrap.h"
-#include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
-#include <elpa/elpa.h>
-#include "../matrix/matrix.h"
-#include "../common/min_max.h"
-#include "../common/gpu_helpers.h"
-#include <stdlib.h>
-#include <math.h>
 #include <complex.h>
+#include <elpa/elpa.h>
+#include <math.h>
+#include <mpi.h>
+#include <stdlib.h>
+
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../common/gpu_helpers.h"
+#include "../common/min_max.h"
+#include "../matrix/matrix.h"
 #include "../solvers.h"
+#include "elpa_wrap.h"
 
-static void elpa_eig_vals_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele, D_float* ev,
-                              D_LL_INT ev_nele, int* error);
+static void elpa_eig_vals_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele,
+                              D_float* ev, D_LL_INT ev_nele, int* error);
 
-static void elpa_eig_vecs_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele, D_float* ev,
-                              D_LL_INT ev_nele, D_Cmplx* q, D_LL_INT q_nele, int* error);
+static void elpa_eig_vecs_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele,
+                              D_float* ev, D_LL_INT ev_nele, D_Cmplx* q,
+                              D_LL_INT q_nele, int* error);
 
-Err_INT Heev_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
-                  D_INT neigs, const D_INT elpa_solver,
-                  const char* gpu_type, const D_INT nthreads)
+Err_INT Heev_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs, D_INT neigs,
+                  const D_INT elpa_solver, const char* gpu_type,
+                  const D_INT nthreads)
 {
     // NOTE : full matrix must be filled for ELPA.
 
@@ -37,7 +39,7 @@ Err_INT Heev_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
 
     if (error)
     {
-        return error; // fatal error
+        return error;  // fatal error
     }
 
     const struct D_Matrix* mat = D_mat;
@@ -81,12 +83,15 @@ Err_INT Heev_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
             {
                 if (!gpu_calc)
                 {
-                    elpa_eigenvectors(Einfo.handle, mat->data, evals, evecs->data, &error);
+                    elpa_eigenvectors(Einfo.handle, mat->data, evals,
+                                      evecs->data, &error);
                 }
                 else
                 {
-                    elpa_eig_vecs_gpu(Einfo.handle, mat->data, mat->ldims[0] * mat->ldims[1], evals,
-                                      mat->gdims[0], evecs->data, evecs->ldims[0] * evecs->ldims[1], &error);
+                    elpa_eig_vecs_gpu(
+                        Einfo.handle, mat->data, mat->ldims[0] * mat->ldims[1],
+                        evals, mat->gdims[0], evecs->data,
+                        evecs->ldims[0] * evecs->ldims[1], &error);
                 }
             }
             else
@@ -97,7 +102,8 @@ Err_INT Heev_Elpa(void* D_mat, D_Cmplx* eig_vals, void* Deig_vecs,
                 }
                 else
                 {
-                    elpa_eig_vals_gpu(Einfo.handle, mat->data, mat->ldims[0] * mat->ldims[1], evals,
+                    elpa_eig_vals_gpu(Einfo.handle, mat->data,
+                                      mat->ldims[0] * mat->ldims[1], evals,
                                       mat->gdims[0], &error);
                 }
             }
@@ -134,8 +140,9 @@ elpa_herm_end:;
     return error;
 }
 
-static void elpa_eig_vecs_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele, D_float* ev,
-                              D_LL_INT ev_nele, D_Cmplx* q, D_LL_INT q_nele, int* error)
+static void elpa_eig_vecs_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele,
+                              D_float* ev, D_LL_INT ev_nele, D_Cmplx* q,
+                              D_LL_INT q_nele, int* error)
 {
     *error = 0;
     if (!isGPUpresent())
@@ -160,7 +167,8 @@ static void elpa_eig_vecs_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele, D_floa
         {
             // Copy back to cpu
             *error = gpu_memcpy(ev, ev_dev, ev_nele * sizeof(*ev), Copy2CPU);
-            *error = gpu_memcpy(q, q_dev, q_nele * sizeof(*q), Copy2CPU) || *error;
+            *error =
+                gpu_memcpy(q, q_dev, q_nele * sizeof(*q), Copy2CPU) || *error;
         }
     }
     else
@@ -176,8 +184,8 @@ static void elpa_eig_vecs_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele, D_floa
 #endif
 }
 
-static void elpa_eig_vals_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele, D_float* ev,
-                              D_LL_INT ev_nele, int* error)
+static void elpa_eig_vals_gpu(elpa_t handle, D_Cmplx* a, D_LL_INT a_nele,
+                              D_float* ev, D_LL_INT ev_nele, int* error)
 {
     *error = 0;
     if (!isGPUpresent())

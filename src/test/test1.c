@@ -1,8 +1,9 @@
+#include <mpi.h>
+#include <stdbool.h>
+#include <stdio.h>
+
 #include "../diago.h"
 #include "../solvers.h"
-#include <stdio.h>
-#include <stdbool.h>
-#include <mpi.h>
 
 #ifdef NOPRINT
 #define printf(A, ...) ;
@@ -44,8 +45,7 @@ int main(int argc, char* argv[])
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
 
-    if (!my_rank)
-        printf("Init D mat : %f\n", end - start);
+    if (!my_rank) printf("Init D mat : %f\n", end - start);
 
     if (!Matrix)
     {
@@ -78,8 +78,7 @@ int main(int argc, char* argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("Init set : %f\n", end - start);
+    if (!my_rank) printf("Init set : %f\n", end - start);
 
     if (error)
     {
@@ -103,8 +102,7 @@ int main(int argc, char* argv[])
 
     MPI_Barrier(MPI_COMM_WORLD);
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("Setting mat : %f\n", end - start);
+    if (!my_rank) printf("Setting mat : %f\n", end - start);
 
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime();
@@ -113,8 +111,7 @@ int main(int argc, char* argv[])
     error = ProcessSetQueue(Matrix);
 
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("SetQueue Process : %f\n", end - start);
+    if (!my_rank) printf("SetQueue Process : %f\n", end - start);
 
     if (error)
     {
@@ -135,8 +132,7 @@ int main(int argc, char* argv[])
     error = initiateGetQueue(Matrix, ele_this_cpu);
 
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("GetQueue init : %f\n", end - start);
+    if (!my_rank) printf("GetQueue init : %f\n", end - start);
 
     if (error)
     {
@@ -163,8 +159,7 @@ int main(int argc, char* argv[])
     }
 
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("GetQueue Set : %f\n", end - start);
+    if (!my_rank) printf("GetQueue Set : %f\n", end - start);
 
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime();
@@ -172,8 +167,7 @@ int main(int argc, char* argv[])
     ProcessGetQueue(Matrix);
 
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("GetQueue Process : %f\n", end - start);
+    if (!my_rank) printf("GetQueue Process : %f\n", end - start);
 
     MPI_Barrier(MPI_COMM_WORLD);
     start = MPI_Wtime();
@@ -189,11 +183,11 @@ int main(int argc, char* argv[])
     }
 
     bool reduce_check_res;
-    MPI_Reduce(&check_mats, &reduce_check_res, 1, MPI_C_BOOL, MPI_LAND, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&check_mats, &reduce_check_res, 1, MPI_C_BOOL, MPI_LAND, 0,
+               MPI_COMM_WORLD);
 
     end = MPI_Wtime();
-    if (!my_rank)
-        printf("End Checking : %f\n", end - start);
+    if (!my_rank) printf("End Checking : %f\n", end - start);
 
 #ifdef NOPRINT
 #undef printf

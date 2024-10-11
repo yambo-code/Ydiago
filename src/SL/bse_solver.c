@@ -1,21 +1,21 @@
 // Contain Special non-TDA BSE Solver
-#include "../solvers.h"
-#include "../matrix/matrix.h"
-#include "scalapack_header.h"
-#include <ctype.h>
-#include <string.h>
-#include "../diago.h"
-#include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
-#include "../common/min_max.h"
-#include <stdlib.h>
-#include <math.h>
 #include <complex.h>
+#include <ctype.h>
+#include <math.h>
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 
-Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
-                   D_float* eigval_range, D_Cmplx* eig_vals,
-                   void* Deig_vecs, D_INT* neigs_found)
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../common/min_max.h"
+#include "../diago.h"
+#include "../matrix/matrix.h"
+#include "../solvers.h"
+#include "scalapack_header.h"
+
+Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range, D_float* eigval_range,
+                   D_Cmplx* eig_vals, void* Deig_vecs, D_INT* neigs_found)
 {
     /*
     Note the eig_vals buffer must have the dimension of the matrix
@@ -107,7 +107,8 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
     // 2) Perform the Cholesky factorization for real symmetric matrix
     if (matA->cpu_engage)
     {
-        SL_FunFloat(potrf)("L", matA->gdims, Ham_r, &izero, &izero, desca, &err_code);
+        SL_FunFloat(potrf)("L", matA->gdims, Ham_r, &izero, &izero, desca,
+                           &err_code);
     }
     // L is stotred in Ham
     if (err_code)
@@ -124,7 +125,6 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
 
     if (Wmat)
     {
-
         error = Construct_bseW(matA, Ham_r, Wmat, NULL, NULL);
 
         /*
@@ -133,7 +133,8 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
         solvers to diagonalize -iW.
         */
 
-        // compute -iW and diagonalize using hermitian solver (only positive eigen values)
+        // compute -iW and diagonalize using hermitian solver (only positive
+        // eigen values)
         if (!error)
         {
             for (D_LL_INT i = 0; i < nloc_elem; ++i)
@@ -154,7 +155,7 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
     }
 
     // first set the default
-    D_INT ev_tmp[2] = { ndim + 1, 2 * ndim };
+    D_INT ev_tmp[2] = {ndim + 1, 2 * ndim};
     D_INT* n_ev_range = ev_tmp;
     // compute the eigen vectors
     if (neigs_range)
@@ -185,9 +186,10 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
         n_ev_range = NULL;
     }
 
-    D_INT neigs = 0; // Note this will be set by Heev
+    D_INT neigs = 0;  // Note this will be set by Heev
 
-    error = Heev(matA, 'U', n_ev_range, eigval_range, eig_vals, Deig_vecs, &neigs);
+    error =
+        Heev(matA, 'U', n_ev_range, eigval_range, eig_vals, Deig_vecs, &neigs);
     if (error)
     {
         goto end_BSE_Solver1;
@@ -223,7 +225,8 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
 
                 if (cabs(alpha) < 1e-8)
                 {
-                    // FIX ME : NM: This is an error because we only want eigen values >0
+                    // FIX ME : NM: This is an error because we only want eigen
+                    // values >0
                     continue;
                 }
                 else
@@ -232,7 +235,8 @@ Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range,
                 }
                 D_INT jx = i + 1;
 
-                SL_FunCmplx(scal)(matZ->gdims, &alpha, matZ->data, &izero, &jx, descz, &izero);
+                SL_FunCmplx(scal)(matZ->gdims, &alpha, matZ->data, &izero, &jx,
+                                  descz, &izero);
             }
         }
     }

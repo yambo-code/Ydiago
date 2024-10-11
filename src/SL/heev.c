@@ -1,23 +1,23 @@
 // Contain heev solvers
 
-#include "../solvers.h"
-#include "../matrix/matrix.h"
-#include "scalapack_header.h"
-#include <ctype.h>
-#include <string.h>
-#include "../diago.h"
-#include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
-#include "../common/min_max.h"
-#include <stdlib.h>
-#include <math.h>
 #include <complex.h>
+#include <ctype.h>
+#include <math.h>
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../common/min_max.h"
+#include "../diago.h"
+#include "../matrix/matrix.h"
+#include "../solvers.h"
+#include "scalapack_header.h"
 
 /*=== P?heevR ===*/
-Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
-             D_float* eigval_range, D_Cmplx* eig_vals,
-             void* Deig_vecs, D_INT* neigs_found)
+Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range, D_float* eigval_range,
+             D_Cmplx* eig_vals, void* Deig_vecs, D_INT* neigs_found)
 {
     /*
     Note the eig_vals buffer must have the dimension of the matrix
@@ -27,16 +27,16 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
 
     if (!eig_vals)
     {
-        return ERR_NULL_PTR_BUFFER; // NUll pointer is passed
+        return ERR_NULL_PTR_BUFFER;  // NUll pointer is passed
         // This is a fatal error, better return immediately!
     }
 
     Err_INT error = check_mat_diago(DmatA, false);
-    D_INT err_code = 0; // error code for scalapack
+    D_INT err_code = 0;  // error code for scalapack
     // do basic checks
     if (error)
     {
-        return error; // Fatal error, return immediately.
+        return error;  // Fatal error, return immediately.
     }
 
     struct D_Matrix* matA = DmatA;
@@ -44,7 +44,7 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
 
     // MN : FIX ME : we need to check the Deig_vecs if present
 
-    *neigs_found = 0; // this will be reset by the scalapack function
+    *neigs_found = 0;  // this will be reset by the scalapack function
 
     // zero out the eigenvalue buffer
     for (D_LL_INT i = 0; i < matA->gdims[0]; ++i)
@@ -81,7 +81,7 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
         il = MIN(neigs_range[0], neigs_range[1]);
         iu = MAX(neigs_range[0], neigs_range[1]);
         if (il < 1 || iu < 1)
-        { // compute all eigen values. This is wrong config
+        {  // compute all eigen values. This is wrong config
             range = 'A';
         }
     }
@@ -93,7 +93,7 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
     }
     char ulpo_tmp = toupper(ulpo);
 
-    D_INT izero = 1; // scalapack indices start from 1
+    D_INT izero = 1;  // scalapack indices start from 1
 
     D_INT desca[9], descz[9];
 
@@ -116,7 +116,7 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
         goto Heev_end;
     }
 
-    D_INT nevecs_found = 0; // this will be reset by the scalapack function
+    D_INT nevecs_found = 0;  // this will be reset by the scalapack function
 
     D_INT lwork = -1, lrwork = -1, liwork = -1;
 
@@ -125,10 +125,9 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
     D_float rwork_tmp[4];
     D_INT iwork_tmp[4];
 
-    SL_FunCmplx(heevr)(&jobz, &range, &ulpo_tmp, matA->gdims,
-                       matA->data, &izero, &izero, desca, &vl, &vu, &il, &iu,
-                       neigs_found, &nevecs_found, eig_tmp,
-                       eig_vecs->data, &izero, &izero,
+    SL_FunCmplx(heevr)(&jobz, &range, &ulpo_tmp, matA->gdims, matA->data,
+                       &izero, &izero, desca, &vl, &vu, &il, &iu, neigs_found,
+                       &nevecs_found, eig_tmp, eig_vecs->data, &izero, &izero,
                        descz, work_tmp, &lwork, rwork_tmp, &lrwork, iwork_tmp,
                        &liwork, &err_code);
 
@@ -148,12 +147,11 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range,
 
     if (work && rwork && iwork)
     {
-        SL_FunCmplx(heevr)(&jobz, &range, &ulpo_tmp, matA->gdims,
-                           matA->data, &izero, &izero, desca, &vl, &vu, &il, &iu,
-                           neigs_found, &nevecs_found, eig_tmp,
-                           eig_vecs->data, &izero, &izero,
-                           descz, work, &lwork, rwork, &lrwork, iwork,
-                           &liwork, &err_code);
+        SL_FunCmplx(heevr)(&jobz, &range, &ulpo_tmp, matA->gdims, matA->data,
+                           &izero, &izero, desca, &vl, &vu, &il, &iu,
+                           neigs_found, &nevecs_found, eig_tmp, eig_vecs->data,
+                           &izero, &izero, descz, work, &lwork, rwork, &lrwork,
+                           iwork, &liwork, &err_code);
     }
     else
     {
@@ -191,7 +189,8 @@ Heev_end:;
         // return the true error
         error = DIAGO_MPI_ERROR;
     }
-    err_code = MPI_Bcast(eig_vals, *neigs_found, D_Cmplx_MPI_TYPE, 0, matA->comm);
+    err_code =
+        MPI_Bcast(eig_vals, *neigs_found, D_Cmplx_MPI_TYPE, 0, matA->comm);
     if (!error && err_code)
     {
         // return the true error
@@ -294,8 +293,8 @@ Heev_end:;
 
 //     SL_FunCmplx(heevx)(&jobz, &range, &ulpo_tmp, matA->gdims,
 //         matA->data, &izero, &izero, desca, &vl, &vu, &il, &iu, &abstol,
-//         &neigs_found, &nevecs_found, eig_tmp, &orfac, eig_vecs->data, &izero, &izero,
-//         descz, work_tmp, &lwork, rwork_tmp, &lrwork, iwork_tmp,
+//         &neigs_found, &nevecs_found, eig_tmp, &orfac, eig_vecs->data, &izero,
+//         &izero, descz, work_tmp, &lwork, rwork_tmp, &lrwork, iwork_tmp,
 //         &liwork, ifail, iclustr, gap, &err_code);
 
 //     lwork  = rint(creal(work_tmp[0])*SL_WORK_QUERY_FAC);
@@ -308,9 +307,9 @@ Heev_end:;
 
 //     SL_FunCmplx(heevx)(&jobz, &range, &ulpo_tmp, matA->gdims,
 //         matA->data, &izero, &izero, desca, &vl, &vu, &il, &iu, &abstol,
-//         &neigs_found, &nevecs_found, eig_tmp, &orfac, eig_vecs->data, &izero, &izero,
-//         descz, work, &lwork, rwork, &lrwork, iwork,
-//         &liwork, ifail, iclustr, gap, &err_code);
+//         &neigs_found, &nevecs_found, eig_tmp, &orfac, eig_vecs->data, &izero,
+//         &izero, descz, work, &lwork, rwork, &lrwork, iwork, &liwork, ifail,
+//         iclustr, gap, &err_code);
 
 //     free(iwork);
 //     free(rwork);
@@ -331,7 +330,8 @@ Heev_end:;
 //         ;
 
 //     error = MPI_Bcast(&neigs_found, 1, D_INT_MPI_TYPE, 0, matA->comm);
-//     error = MPI_Bcast(eig_vals, neigs_found, D_Cmplx_MPI_TYPE, 0, matA->comm);
+//     error = MPI_Bcast(eig_vals, neigs_found, D_Cmplx_MPI_TYPE, 0,
+//     matA->comm);
 
 //     return 0;
 
@@ -431,7 +431,8 @@ Heev_end:;
 //     end_HeevD :
 //         ;
 
-//     error = MPI_Bcast(eig_vals, matA->gdims[0], D_Cmplx_MPI_TYPE, 0, matA->comm);
+//     error = MPI_Bcast(eig_vals, matA->gdims[0], D_Cmplx_MPI_TYPE, 0,
+//     matA->comm);
 
 //     return 0;
 

@@ -3,14 +3,15 @@
 //
 //
 //
-#include "matrix.h"
-#include "../SL/scalapack_header.h"
-#include "../diago.h"
-#include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
-#include <stdlib.h>
 #include <ctype.h>
+#include <mpi.h>
+#include <stdlib.h>
+
+#include "../SL/scalapack_header.h"
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../diago.h"
+#include "matrix.h"
 
 void* BLACScxtInit(char layout, MPI_Comm comm, D_INT ProcX, D_INT ProcY)
 {
@@ -60,8 +61,8 @@ void BLACScxtFree(void* mpicontxt)
     free(mpicontxt);
 }
 
-void* init_D_Matrix(D_INT Grows, D_INT Gcols,
-                    D_INT blockX, D_INT blockY, void* mpicontxt)
+void* init_D_Matrix(D_INT Grows, D_INT Gcols, D_INT blockX, D_INT blockY,
+                    void* mpicontxt)
 {
     // this function must be called by all the CPUS participating
     // in the comm
@@ -118,7 +119,8 @@ void* init_D_Matrix(D_INT Grows, D_INT Gcols,
     if (myid < (ProcX * ProcY))
     {
         D_INT tmp_ProcX, tmp_ProcY;
-        Cblacs_gridinfo(mat->blacs_ctxt, &tmp_ProcX, &tmp_ProcY, &myrow, &mycol);
+        Cblacs_gridinfo(mat->blacs_ctxt, &tmp_ProcX, &tmp_ProcY, &myrow,
+                        &mycol);
         if (tmp_ProcX != ProcX || tmp_ProcY != ProcY)
         {
             goto error_3;
@@ -126,7 +128,7 @@ void* init_D_Matrix(D_INT Grows, D_INT Gcols,
     }
     else
     {
-        mat->cpu_engage = false; // cpu is not in th process grid operations
+        mat->cpu_engage = false;  // cpu is not in th process grid operations
         myrow = -1;
         mycol = -1;
     }
@@ -138,13 +140,15 @@ void* init_D_Matrix(D_INT Grows, D_INT Gcols,
     }
 
     D_INT* tmp_col_arr = tmp_row_arr + comm_size;
-    mpi_error = MPI_Allgather(&myrow, 1, D_INT_MPI_TYPE, tmp_row_arr, 1, D_INT_MPI_TYPE, comm);
+    mpi_error = MPI_Allgather(&myrow, 1, D_INT_MPI_TYPE, tmp_row_arr, 1,
+                              D_INT_MPI_TYPE, comm);
     if (mpi_error != MPI_SUCCESS)
     {
         goto error_4;
     }
 
-    mpi_error = MPI_Allgather(&mycol, 1, D_INT_MPI_TYPE, tmp_col_arr, 1, D_INT_MPI_TYPE, comm);
+    mpi_error = MPI_Allgather(&mycol, 1, D_INT_MPI_TYPE, tmp_col_arr, 1,
+                              D_INT_MPI_TYPE, comm);
     if (mpi_error != MPI_SUCCESS)
     {
         goto error_4;
@@ -200,8 +204,8 @@ void* init_D_Matrix(D_INT Grows, D_INT Gcols,
     {
         goto error_3;
     }
-    mat->SetQueuePtr = NULL; // initiate the Queue pointer to NULL
-    mat->GetQueuePtr = NULL; // initiate the Queue pointer to NULL
+    mat->SetQueuePtr = NULL;  // initiate the Queue pointer to NULL
+    mat->GetQueuePtr = NULL;  // initiate the Queue pointer to NULL
     mat->nSetQueueElements = 0;
     mat->nGetQueueElements = 0;
     mat->iset = 0;

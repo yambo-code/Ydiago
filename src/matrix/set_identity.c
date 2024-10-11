@@ -1,8 +1,8 @@
-#include "matrix.h"
 #include "../SL/scalapack_header.h"
-#include "../diago.h"
-#include "../common/error.h"
 #include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../diago.h"
+#include "matrix.h"
 
 Err_INT set_identity(void* DmatA)
 {
@@ -39,8 +39,10 @@ Err_INT set_identity(void* DmatA)
         if (prow == matA->pids[0] && pcol == matA->pids[1])
         {
             // compute the local indices
-            D_INT iloc = INDXG2L(i, matA->block_size[0], prow, 0, matA->pgrid[0]);
-            D_INT jloc = INDXG2L(i, matA->block_size[1], pcol, 0, matA->pgrid[1]);
+            D_INT iloc =
+                INDXG2L(i, matA->block_size[0], prow, 0, matA->pgrid[0]);
+            D_INT jloc =
+                INDXG2L(i, matA->block_size[1], pcol, 0, matA->pgrid[1]);
 
             matA->data[iloc * matA->lda[0] + jloc * matA->lda[1]] = 1.0;
         }

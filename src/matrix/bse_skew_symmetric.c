@@ -1,12 +1,13 @@
 // builds the skew symmetric matrix required when diagonalizing non-TDA bse
 // hamiliton.
-#include "matrix.h"
-#include "../SL/scalapack_header.h"
-#include "../diago.h"
 #include <mpi.h>
-#include "../common/error.h"
-#include "../common/dtypes.h"
 #include <stdlib.h>
+
+#include "../SL/scalapack_header.h"
+#include "../common/dtypes.h"
+#include "../common/error.h"
+#include "../diago.h"
+#include "matrix.h"
 
 Err_INT Omega_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L)
 {
@@ -29,7 +30,7 @@ Err_INT Omega_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L)
 
     if (!matA->cpu_engage)
     {
-        return DIAGO_SUCCESS; // these cpus donot participate
+        return DIAGO_SUCCESS;  // these cpus donot participate
     }
 
     D_LL_INT nloc_elem = matA->ldims[0] * matA->ldims[1];
@@ -64,9 +65,8 @@ Err_INT Omega_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L)
     D_INT jb_to = 1;
 
     // first copy the L12 block
-    SL_FunFloat(gemr2d)(&ndim, &ndim, Lmat,
-                        &ia_from, &ja_from, desca, out_Omega_L, &ib_to,
-                        &jb_to, desca, &ictxt);
+    SL_FunFloat(gemr2d)(&ndim, &ndim, Lmat, &ia_from, &ja_from, desca,
+                        out_Omega_L, &ib_to, &jb_to, desca, &ictxt);
 
     // copy the L2
     ia_from = ndim + 1;
@@ -74,8 +74,7 @@ Err_INT Omega_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L)
     ib_to = 1;
     jb_to = ndim + 1;
 
-    SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim,
-                        Lmat, &ia_from, &ja_from, desca,
+    SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim, Lmat, &ia_from, &ja_from, desca,
                         out_Omega_L, &ib_to, &jb_to, desca, &ictxt);
 
     // copy -L1
@@ -89,8 +88,7 @@ Err_INT Omega_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L)
     ja_from = 1;
     ib_to = ndim + 1;
     jb_to = 1;
-    SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim,
-                        Lmat, &ia_from, &ja_from, desca,
+    SL_FunFloat(trmr2d)("L", "N", &ndim, &ndim, Lmat, &ia_from, &ja_from, desca,
                         out_Omega_L, &ib_to, &jb_to, desca, &ictxt);
 
     // undo the negative sign
@@ -102,7 +100,8 @@ Err_INT Omega_times_L(void* DmatA, D_float* Lmat, D_float* out_Omega_L)
     return DIAGO_SUCCESS;
 }
 
-Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu, void* einfo)
+Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu,
+                       void* einfo)
 {
     /* This routine constructs W = L^T * |0    I_n| * L where L is the lower
     ------------------------------------ |-I_n   0| ------------------------
@@ -137,7 +136,7 @@ Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu, voi
     if (matA->cpu_engage)
     {
         if (!DmatA || !Lmat || !Wmat)
-        { // error
+        {  // error
             return MATRIX_NOT_INIT;
         }
     }
@@ -166,11 +165,9 @@ Err_INT Construct_bseW(void* DmatA, D_float* Lmat, D_float* Wmat, char* gpu, voi
     {
         // This should be ported to gpus. (elpa has it), but not sure
         // if it will give any millage.
-        SL_FunFloat(trmm)("L", "L", "T",
-                          "N", matA->gdims, matA->gdims,
-                          &alpha, Lmat, &izero,
-                          &izero, desca, Wmat,
-                          &izero, &izero, desca);
+        SL_FunFloat(trmm)("L", "L", "T", "N", matA->gdims, matA->gdims, &alpha,
+                          Lmat, &izero, &izero, desca, Wmat, &izero, &izero,
+                          desca);
     }
 
     return error;
