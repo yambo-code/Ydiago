@@ -30,11 +30,8 @@ struct SetElement
     D_INT j;  // global col index
 };
 
-static D_INT* Set_mapP2iD;  // maps (iproc,jproc)->mpirank. used in Set_idxG2iD
-static int cmpSetElements(const void* a, const void* b);
-
 static inline D_INT Set_idxG2iD(const D_INT* setCmpPrms, const D_INT i,
-                                const D_INT j)
+                                const D_INT j, const D_INT* Set_mapP2iD)
 {
     // setCmpPrms is array[5]{cxt, BlkX, BlkY, NProcX, NProcY}
     D_INT prow = INDXG2P(i, setCmpPrms[1], 0, 0, setCmpPrms[3]);
@@ -126,21 +123,12 @@ Err_INT ProcessSetQueue(void* D_mat)
         goto error_set_queue_1;
     }
 
-    // First, set the Set_mapP2iD pointer;
-    Set_mapP2iD = mat->mapP2iD;
+    const D_INT* Set_mapP2iD = mat->mapP2iD;
 
     // next we need to sort the SetQueue array based on the ranks
     const D_INT cmpSetupEle[5] = {mat->blacs_ctxt, mat->block_size[0],
                                   mat->block_size[1], mat->pgrid[0],
                                   mat->pgrid[1]};
-    if (mat->nSetQueueElements > 0)
-    {
-        // setup the comparison function
-        cmpSetElements(NULL, cmpSetupEle);
-        // Now sort
-        qsort(mat->SetQueuePtr, mat->nSetQueueElements,
-              sizeof(struct SetElement), cmpSetElements);
-    }
 
     // some MPI related stuff
     int TotalCommCpus;
@@ -164,14 +152,54 @@ Err_INT ProcessSetQueue(void* D_mat)
     for (D_LL_INT i = 0; i < TotalCommCpus; ++i)
     {
         counts_send[i] = 0;
+        displacements_send[i] = 0;
     }
 
     struct SetElement* setQueue = mat->SetQueuePtr;
+    struct SetElement* setQueue_sorted =
+        malloc((mat->nSetQueueElements + 1) * sizeof(*setQueue_sorted));
+    if (!setQueue_sorted)
+    {
+        error = BUF_ALLOC_FAILED;  // error
+        goto error_set_queue_2;
+    }
+
+    // Use displacements_send as tmp buffer to first find the number of elements
     for (D_LL_INT i = 0; i < mat->nSetQueueElements; ++i)
     {
-        D_INT tmp_rank = Set_idxG2iD(cmpSetupEle, setQueue[i].i, setQueue[i].j);
+        D_INT tmp_rank =
+            Set_idxG2iD(cmpSetupEle, setQueue[i].i, setQueue[i].j, Set_mapP2iD);
+        ++displacements_send[tmp_rank];
+    }
+
+    // compute cumulative sum
+    for (D_INT i = 1; i < TotalCommCpus; ++i)
+    {
+        displacements_send[i] += displacements_send[i - 1];
+    }
+    if (TotalCommCpus > 1)
+    {
+        memmove(displacements_send + 1, displacements_send,
+                (TotalCommCpus - 1) * sizeof(*displacements_send));
+    }
+    displacements_send[0] = 0;
+
+    // Cluster them into groups by ranks
+    for (D_LL_INT i = 0; i < mat->nSetQueueElements; ++i)
+    {
+        D_INT tmp_rank =
+            Set_idxG2iD(cmpSetupEle, setQueue[i].i, setQueue[i].j, Set_mapP2iD);
+        D_LL_INT tmp_disp = displacements_send[tmp_rank];
+        memcpy(setQueue_sorted + tmp_disp + counts_send[tmp_rank], setQueue + i,
+               sizeof(*setQueue));
         ++counts_send[tmp_rank];
     }
+    // swap the pointer and free it to avoid copying it
+    mat->SetQueuePtr = setQueue_sorted;
+    free(setQueue);
+    setQueue = setQueue_sorted;
+    setQueue_sorted = NULL;
+
     mpi_error = MPI_Alltoall(counts_send, 1, MPI_INT, counts_recv, 1, MPI_INT,
                              mat->comm);
     if (mpi_error != MPI_SUCCESS)
@@ -296,39 +324,4 @@ Err_INT DMatSet_fortran(void* D_mat, const D_INT i, const D_INT j,
                         const D_Cmplx value)
 {
     return DMatSet(D_mat, i - 1, j - 1, value);
-}
-
-// compartor for qsort
-static int cmpSetElements(const void* a, const void* b)
-{
-    /*
-    This is a compartor function used only in ProcessSetQueue
-    function to sort the SetQueue elements according to the
-    processor iD.
-    Note : Before calling qsort. one must set the setCmpParams.
-    THis can be done by setting a = NULL and passing D_INT[5] array
-    to b
-    */
-    static D_INT setCmpParams[5];
-    // {cxt, BlkX, BlkY, NProcX, NProcY}
-    /*
-    cxt : Context
-    BlkX,BlkY : block cyclic laylout block size
-    NProcX, NProcY : Total number of processors in the grid
-    */
-    if (!a)
-    {
-        if (b)
-        {
-            memcpy(setCmpParams, b, sizeof(D_INT) * 5);
-        }
-        return 0;
-    }
-    const struct SetElement* arg1 = a;
-    const struct SetElement* arg2 = b;
-    // find the processor ids of arg1 and arg2 and sort
-    D_INT rank1 = Set_idxG2iD(setCmpParams, arg1->i, arg1->j);
-    D_INT rank2 = Set_idxG2iD(setCmpParams, arg2->i, arg2->j);
-
-    return (rank1 > rank2) - (rank1 < rank2);
 }

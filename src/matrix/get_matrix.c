@@ -18,11 +18,8 @@ struct GetElement
     D_INT j;  // global col index
 };
 
-static D_INT* Get_mapP2iD;  // maps (iproc,jproc)->mpirank. used in Get_idxG2iD
-static int cmpGetElements(const void* a, const void* b);
-
 static inline D_INT Get_idxG2iD(const D_INT* getCmpPrms, const D_INT i,
-                                const D_INT j)
+                                const D_INT j, const D_INT* Get_mapP2iD)
 {
     // getCmpPrms is array[5]{cxt, BlkX, BlkY, NProcX, NProcY}
     D_INT prow = INDXG2P(i, getCmpPrms[1], 0, 0, getCmpPrms[3]);
@@ -114,21 +111,12 @@ Err_INT ProcessGetQueue(void* D_mat)
         goto error_get_queue_1;
     }
 
-    // First, set the Get_mapP2iD pointer;
-    Get_mapP2iD = mat->mapP2iD;
+    const D_INT* Get_mapP2iD = mat->mapP2iD;
 
     // next we need to sort the GetQueue array based on the ranks
     const D_INT cmpGetupEle[5] = {mat->blacs_ctxt, mat->block_size[0],
                                   mat->block_size[1], mat->pgrid[0],
                                   mat->pgrid[1]};
-    if (mat->nGetQueueElements > 0)
-    {
-        // setup the comparison function
-        cmpGetElements(NULL, cmpGetupEle);
-        // Now sort
-        qsort(mat->GetQueuePtr, mat->nGetQueueElements,
-              sizeof(struct GetElement), cmpGetElements);
-    }
 
     // some MPI related stuff
     int TotalCommCpus;
@@ -153,14 +141,55 @@ Err_INT ProcessGetQueue(void* D_mat)
     for (D_LL_INT i = 0; i < TotalCommCpus; ++i)
     {
         counts_recv[i] = 0;
+        displacements_send[i] = 0;
     }
 
     struct GetElement* getQueue = mat->GetQueuePtr;
+    struct GetElement* getQueue_sorted =
+        malloc((mat->nGetQueueElements + 1) * sizeof(*getQueue_sorted));
+    if (!getQueue_sorted)
+    {
+        error = BUF_ALLOC_FAILED;  // error
+        goto error_get_queue_2;
+    }
+
+    // Use displacements_send as tmp buffer to first find the number of elements
+    //
     for (D_LL_INT i = 0; i < mat->nGetQueueElements; ++i)
     {
-        D_INT tmp_rank = Get_idxG2iD(cmpGetupEle, getQueue[i].i, getQueue[i].j);
+        D_INT tmp_rank =
+            Get_idxG2iD(cmpGetupEle, getQueue[i].i, getQueue[i].j, Get_mapP2iD);
+        ++displacements_send[tmp_rank];
+    }
+
+    // compute cumulative sum
+    for (D_INT i = 1; i < TotalCommCpus; ++i)
+    {
+        displacements_send[i] += displacements_send[i - 1];
+    }
+    if (TotalCommCpus > 1)
+    {
+        memmove(displacements_send + 1, displacements_send,
+                (TotalCommCpus - 1) * sizeof(*displacements_send));
+    }
+    displacements_send[0] = 0;
+
+    // Cluster them into groups by ranks
+    for (D_LL_INT i = 0; i < mat->nGetQueueElements; ++i)
+    {
+        D_INT tmp_rank =
+            Get_idxG2iD(cmpGetupEle, getQueue[i].i, getQueue[i].j, Get_mapP2iD);
+        D_LL_INT tmp_disp = displacements_send[tmp_rank];
+        memcpy(getQueue_sorted + tmp_disp + counts_recv[tmp_rank], getQueue + i,
+               sizeof(*getQueue));
         ++counts_recv[tmp_rank];
     }
+
+    // swap the pointer and free it to avoid copying it
+    mat->GetQueuePtr = getQueue_sorted;
+    free(getQueue);
+    getQueue = getQueue_sorted;
+    getQueue_sorted = NULL;
 
     mpi_error = MPI_Alltoall(counts_recv, 1, MPI_INT, counts_send, 1, MPI_INT,
                              mat->comm);
@@ -306,39 +335,4 @@ Err_INT DMatGet_fortran(void* D_mat, const D_INT i, const D_INT j,
                         D_Cmplx* value)
 {
     return DMatGet(D_mat, i - 1, j - 1, value);
-}
-
-// compartor for qsort
-static int cmpGetElements(const void* a, const void* b)
-{
-    /*
-    This is a compartor function used only in ProcessGetQueue
-    function to sort the GetQueue elements according to the
-    processor iD.
-    Note : Before calling qsort. one must Get the GetCmpParams.
-    THis can be done by Getting a = NULL and passing D_INT[5] array
-    to b
-    */
-    static D_INT GetCmpParams[5];
-    // {cxt, BlkX, BlkY, NProcX, NProcY}
-    /*
-    cxt : Context
-    BlkX,BlkY : block cyclic laylout block size
-    NProcX, NProcY : Total number of processors in the grid
-    */
-    if (!a)
-    {
-        if (b)
-        {
-            memcpy(GetCmpParams, b, sizeof(D_INT) * 5);
-        }
-        return 0;
-    }
-    const struct GetElement* arg1 = a;
-    const struct GetElement* arg2 = b;
-    // find the processor ids of arg1 and arg2 and sort
-    D_INT rank1 = Get_idxG2iD(GetCmpParams, arg1->i, arg1->j);
-    D_INT rank2 = Get_idxG2iD(GetCmpParams, arg2->i, arg2->j);
-
-    return (rank1 > rank2) - (rank1 < rank2);
 }

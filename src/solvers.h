@@ -11,7 +11,7 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range, D_float* eigval_range,
 Err_INT BSE_Solver(void* DmatA, D_INT* neigs_range, D_float* eigval_range,
                    D_Cmplx* eig_vals, void* Deig_vecs, D_INT* neigs_found);
 
-// General non-hermitian solver (unstable)
+// General non-hermitian solver
 Err_INT Geev(void* DmatA, D_Cmplx* eig_vals, void* Deig_vecsL,
              void* Deig_vecsR);
 

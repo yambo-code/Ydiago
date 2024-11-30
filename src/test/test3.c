@@ -5,6 +5,7 @@
 
 #include "../diago.h"
 #include "../solvers.h"
+#include "tests.h"
 
 #undef NOPRINT
 

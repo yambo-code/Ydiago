@@ -4,6 +4,7 @@
 
 #include "../diago.h"
 #include "../solvers.h"
+#include "tests.h"
 
 #ifdef NOPRINT
 #define printf(A, ...) ;
