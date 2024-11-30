@@ -1,6 +1,10 @@
 // Contain Special non-TDA BSE Solver
 #include "../diago.h"
 
+#ifndef HAVE_SKEWSYMMETRIC
+#define HAVE_SKEWSYMMETRIC  // This is for elpa and must be before elpa/elpa.h
+#endif
+
 #ifdef WITH_ELPA
 #include <complex.h>
 #include <elpa/elpa.h>

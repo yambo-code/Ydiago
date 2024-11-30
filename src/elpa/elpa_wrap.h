@@ -1,7 +1,9 @@
 #pragma once
 #include "../diago.h"
 
+#ifndef HAVE_SKEWSYMMETRIC
 #define HAVE_SKEWSYMMETRIC  // This is for elpa and must be before elpa/elpa.h
+#endif
 //
 #ifdef WITH_ELPA
 #include <elpa/elpa.h>
