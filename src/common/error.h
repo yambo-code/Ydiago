@@ -48,6 +48,9 @@ typedef int Err_INT;
 #define GPU_ALLOC_FAILED -14
 // Failed to allocate memory on GPU
 
+#define MPI_INT_MAX_EXCEEDED -15
+// interger overflow when calling MPI funtions
+
 #define QUEUE_ALREADY_INIT 1
 // Only one set and one get queue can be set at a time.
 // If a previous queue is not processed before initiating
