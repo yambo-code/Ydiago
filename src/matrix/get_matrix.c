@@ -1,10 +1,10 @@
 // THis file contains functions that gets elements from the
 // global distribution matrix
 //
+#include <limits.h>
 #include <mpi.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include "../SL/scalapack_header.h"
 #include "../common/dtypes.h"
@@ -30,7 +30,7 @@ static inline D_INT Get_idxG2iD(const D_INT* getCmpPrms, const D_INT i,
 
 Err_INT initiateGetQueue(void* D_mat, const D_LL_INT nelements)
 {
-    if (nelements >=INT_MAX)
+    if (nelements >= INT_MAX)
     {
         return MPI_INT_MAX_EXCEEDED;
     }
@@ -214,7 +214,7 @@ Err_INT ProcessGetQueue(void* D_mat)
         total_send += counts_send[i];
         total_recv += counts_recv[i];
         // Disaster, return immediatly !
-        if (total_recv >=INT_MAX || total_send >= INT_MAX)
+        if (total_recv >= INT_MAX || total_send >= INT_MAX)
         {
             error = MPI_INT_MAX_EXCEEDED;
             goto error_get_queue_2;
