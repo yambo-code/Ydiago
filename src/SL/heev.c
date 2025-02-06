@@ -84,6 +84,10 @@ Err_INT Heev(void* DmatA, char ulpo, D_INT* neigs_range, D_float* eigval_range,
         {  // compute all eigen values. This is wrong config
             range = 'A';
         }
+        if (iu > matA->gdims[0])
+        {
+            iu = matA->gdims[0];
+        }
     }
     else if (eigval_range)
     {
